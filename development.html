@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -52,38 +53,16 @@
     .btn-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
     .btn-gold:hover { background: rgba(201,168,76,0.1); transform: translateY(-2px); }
 
-    /* ── Construction Photo Animation ── */
+    /* ── 3-D Construction Scene ── */
     #dev-section { position: relative; }
     #dev-pin {
       position: sticky; top: 0; height: 100vh;
       overflow: hidden;
     }
-
-    /* Stacked full-bleed phase photos */
-    .photos-wrap {
-      position: absolute;
-      inset: 0;
-    }
-    .phase-photo {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center bottom;
-      /* clip-path controls the build-up reveal — JS sets initial state */
-      will-change: clip-path;
-    }
-    /* Cinematic dark overlay — tinted toward brand navy */
-    .photo-cinematic {
-      position: absolute; inset: 0; z-index: 2; pointer-events: none;
-      background:
-        linear-gradient(to right, rgba(8,13,26,0.65) 0%, rgba(8,13,26,0.15) 35%, rgba(8,13,26,0.15) 65%, rgba(8,13,26,0.65) 100%),
-        linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.1) 30%, rgba(8,13,26,0.1) 65%, rgba(8,13,26,0.8) 100%);
-    }
-    /* Subtle blue colour cast to tie photos into brand palette */
-    .photo-tint {
-      position: absolute; inset: 0; z-index: 3; pointer-events: none;
-      background: rgba(13, 31, 60, 0.25);
-      mix-blend-mode: multiply;
+    #three-canvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
     }
 
     /* Phase HUD */
@@ -235,23 +214,8 @@
 <section id="dev-section" style="height: 400vh;">
   <div id="dev-pin">
 
-    <!-- 5 phase photos — swap URLs with your own project photography -->
-    <div class="photos-wrap" id="photos-wrap">
-      <!-- Phase 01 — Plot of Land -->
-      <div class="phase-photo" id="ph-0" style="background-image:url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80'); background-position: center 60%"></div>
-      <!-- Phase 02 — Concrete Foundation -->
-      <div class="phase-photo" id="ph-1" style="background-image:url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1600&q=80'); background-position: center 50%"></div>
-      <!-- Phase 03 — Framing -->
-      <div class="phase-photo" id="ph-2" style="background-image:url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80'); background-position: center 40%"></div>
-      <!-- Phase 04 — Windows, Roof & Siding -->
-      <div class="phase-photo" id="ph-3" style="background-image:url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1600&q=80'); background-position: center 50%"></div>
-      <!-- Phase 05 — Landscaping & Complete -->
-      <div class="phase-photo" id="ph-4" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80'); background-position: center 50%"></div>
-    </div>
-
-    <!-- Cinematic overlays -->
-    <div class="photo-cinematic"></div>
-    <div class="photo-tint"></div>
+    <!-- Three.js 3-D construction viewport -->
+    <canvas id="three-canvas"></canvas>
 
     <!-- Phase HUD (top-left) -->
     <div class="dev-hud">
@@ -381,52 +345,232 @@ function setPhase(idx) {
   if (curr) curr.classList.add('visible');
 }
 
-// Phase 0 (land) always fully visible; phases 1-4 start hidden below the frame
-document.getElementById('ph-0').style.clipPath = 'none';
-for (let i = 1; i < phases.length; i++) {
-  const el = document.getElementById(`ph-${i}`);
-  if (el) el.style.clipPath = 'inset(0 0 100% 0)';
+// ── THREE.JS 3-D CONSTRUCTION SCENE ─────────────────────────
+const canvas3d = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x080d1a);
+scene.fog = new THREE.FogExp2(0x080d1a, 0.020);
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(20, 15, 22);
+camera.lookAt(0, 3, 0);
+
+// ── Lights ──────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x334466, 1.8));
+const sun = new THREE.DirectionalLight(0xfff8e8, 2.4);
+sun.position.set(14, 26, 12);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -22; sun.shadow.camera.right = 22;
+sun.shadow.camera.top  =  22; sun.shadow.camera.bottom= -22;
+sun.shadow.camera.near = 1;   sun.shadow.camera.far   = 100;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x1a2daa, 0.7);
+fill.position.set(-10, 6, -8); scene.add(fill);
+const rim  = new THREE.DirectionalLight(0x334488, 0.35);
+rim.position.set(-4, 10, 15);  scene.add(rim);
+
+// ── Materials ────────────────────────────────────────────────
+const M = {
+  ground:   new THREE.MeshLambertMaterial({ color: 0x182208 }),
+  dirt:     new THREE.MeshLambertMaterial({ color: 0x6a5038 }),
+  concrete: new THREE.MeshLambertMaterial({ color: 0x909080 }),
+  wood:     new THREE.MeshLambertMaterial({ color: 0xcc8830 }),
+  siding:   new THREE.MeshLambertMaterial({ color: 0xd0c09a }),
+  roof:     new THREE.MeshLambertMaterial({ color: 0x3a2e1c, side: THREE.DoubleSide }),
+  glass:    new THREE.MeshLambertMaterial({ color: 0x88bbdd, transparent: true, opacity: 0.72 }),
+  door:     new THREE.MeshLambertMaterial({ color: 0x552a10 }),
+  grass:    new THREE.MeshLambertMaterial({ color: 0x28560e }),
+  driveway: new THREE.MeshLambertMaterial({ color: 0x484848 }),
+  tree:     new THREE.MeshLambertMaterial({ color: 0x22600e }),
+  trunk:    new THREE.MeshLambertMaterial({ color: 0x6a3e18 }),
+};
+
+// Helper: box mesh
+function B(w,h,d,mat,x,y,z,grp) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z); m.castShadow = m.receiveShadow = true;
+  grp.add(m); return m;
 }
-setPhase(0);
+
+// House geometry constants
+const FDN_H  = 0.9;
+const WL_H   = 3.6;
+const RF_RISE = 2.2;
+const RF_RUN  = 5.0;
+const PLATE_Y = FDN_H + WL_H;
+const RAF_ANG = Math.atan2(RF_RISE, RF_RUN);
+const RAF_LEN = Math.sqrt(RF_RISE*RF_RISE + RF_RUN*RF_RUN) + 0.5;
+
+// ── G0: LAND ─────────────────────────────────────────────────
+const G0 = new THREE.Group(); scene.add(G0);
+B(80, 0.3, 80, M.ground, 0, -0.15, 0, G0);
+B(13, 0.12, 10, M.dirt,  0,  0.06, 0, G0);   // raw-dirt building footprint
+
+// ── G1: FOUNDATION ───────────────────────────────────────────
+const G1 = new THREE.Group(); G1.position.y = -22; scene.add(G1);
+B(10.8, FDN_H, 0.4, M.concrete,  0,   FDN_H/2,  4.3, G1);   // front stem
+B(10.8, FDN_H, 0.4, M.concrete,  0,   FDN_H/2, -4.3, G1);   // back stem
+B(0.4,  FDN_H, 8.2, M.concrete,  5.2, FDN_H/2,  0,   G1);   // right stem
+B(0.4,  FDN_H, 8.2, M.concrete, -5.2, FDN_H/2,  0,   G1);   // left stem
+B(10.4, 0.20,  8.0, M.concrete,  0,   0.10,      0,   G1);   // slab
+
+// ── G2: FRAMING ──────────────────────────────────────────────
+const G2 = new THREE.Group(); G2.position.y = -22; scene.add(G2);
+const SC = FDN_H + WL_H/2;   // stud center y
+
+// Corner posts
+[[-5.0,4.0],[5.0,4.0],[-5.0,-4.0],[5.0,-4.0]].forEach(([x,z])=>
+  B(0.22,WL_H,0.22, M.wood, x, SC, z, G2));
+// Front studs
+[-3.5,-2.0,2.0,3.5].forEach(x=> B(0.16,WL_H,0.16, M.wood, x, SC, 4.0, G2));
+// Back studs
+[-3.5,-1.8,0,1.8,3.5].forEach(x=> B(0.16,WL_H,0.16, M.wood, x, SC,-4.0, G2));
+// Side studs
+[-2.6,-0.9,0.9,2.6].forEach(z=>{
+  B(0.16,WL_H,0.16, M.wood,-5.0, SC, z, G2);
+  B(0.16,WL_H,0.16, M.wood, 5.0, SC, z, G2);
+});
+// Top plates
+B(10.8,0.16,0.16, M.wood,  0,  PLATE_Y, 4.0, G2);
+B(10.8,0.16,0.16, M.wood,  0,  PLATE_Y,-4.0, G2);
+B(0.16,0.16,8.4,  M.wood,  5.0,PLATE_Y, 0,   G2);
+B(0.16,0.16,8.4,  M.wood, -5.0,PLATE_Y, 0,   G2);
+// Ridge beam
+B(11.2,0.24,0.24, M.wood, 0, PLATE_Y+RF_RISE, 0, G2);
+// Rafters
+[-3.6,-1.8,0,1.8,3.6].forEach(z=>{
+  const rL = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN-0.4,0.14,0.14), M.wood);
+  rL.rotation.z = RAF_ANG; rL.position.set(-RF_RUN/2, PLATE_Y+RF_RISE/2, z);
+  G2.add(rL);
+  const rR = rL.clone(); rR.rotation.z = -RAF_ANG;
+  rR.position.set(RF_RUN/2, PLATE_Y+RF_RISE/2, z); G2.add(rR);
+});
+
+// ── G3: EXTERIOR ─────────────────────────────────────────────
+const G3 = new THREE.Group(); G3.position.y = -22; scene.add(G3);
+
+// Front wall (door gap center, two window gaps)
+B(1.9,WL_H,0.22, M.siding,-3.9, FDN_H+WL_H/2, 4.2, G3);   // far-left panel
+B(1.9,WL_H,0.22, M.siding, 3.9, FDN_H+WL_H/2, 4.2, G3);   // far-right panel
+B(0.8,WL_H,0.22, M.siding,-1.7, FDN_H+WL_H/2, 4.2, G3);   // left of door
+B(0.8,WL_H,0.22, M.siding, 1.7, FDN_H+WL_H/2, 4.2, G3);   // right of door
+B(3.0,1.0, 0.22, M.siding, 0, FDN_H+WL_H-0.5, 4.2, G3);   // above door
+// Back + side walls
+B(10.8,WL_H,0.22, M.siding,  0,  FDN_H+WL_H/2, -4.2, G3);
+B(0.22,WL_H,8.8,  M.siding,  5.2,FDN_H+WL_H/2,  0,   G3);
+B(0.22,WL_H,8.8,  M.siding, -5.2,FDN_H+WL_H/2,  0,   G3);
+// Gable-end fill (stacked boxes approximating triangle) on x = ±5.2
+(function(){
+  const n = 5, ht = RF_RISE/n;
+  for(let g=0; g<n; g++){
+    const cy  = PLATE_Y + ht*(g+0.5);
+    const frac = (cy - PLATE_Y) / RF_RISE;
+    const wd  = Math.max(0.4, 8.2*(1-frac) + 0.15);
+    B(0.22, ht, wd, M.siding,  5.2, cy, 0, G3);
+    B(0.22, ht, wd, M.siding, -5.2, cy, 0, G3);
+  }
+})();
+// Windows — front
+B(1.3,1.2,0.10, M.glass,-2.7, FDN_H+2.0, 4.24, G3);
+B(1.3,1.2,0.10, M.glass, 2.7, FDN_H+2.0, 4.24, G3);
+// Windows — back
+B(1.6,1.2,0.10, M.glass,-3.5, FDN_H+1.8,-4.24, G3);
+B(1.6,1.2,0.10, M.glass, 3.5, FDN_H+1.8,-4.24, G3);
+// Windows — right side
+B(0.10,1.2,1.4, M.glass, 5.24, FDN_H+1.8,-1.5, G3);
+B(0.10,1.2,1.4, M.glass, 5.24, FDN_H+1.8, 1.5, G3);
+// Door
+B(1.5,2.5,0.10, M.door, 0, FDN_H+1.25, 4.24, G3);
+// Roof slopes (two rotated box panels)
+const ls = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.2), M.roof);
+ls.rotation.z = RAF_ANG;
+ls.position.set(-RF_RUN/2, PLATE_Y+RF_RISE/2, 0);
+ls.castShadow = true; G3.add(ls);
+const rs = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.2), M.roof);
+rs.rotation.z = -RAF_ANG;
+rs.position.set(RF_RUN/2, PLATE_Y+RF_RISE/2, 0);
+rs.castShadow = true; G3.add(rs);
+// Ridge cap
+B(11.4,0.28,0.5, M.roof, 0, PLATE_Y+RF_RISE+0.14, 0, G3);
+// Chimney
+B(0.9,2.8,0.9, M.concrete, 3.5, PLATE_Y+RF_RISE-0.6, -1.5, G3);
+
+// ── G4: LANDSCAPE ────────────────────────────────────────────
+const G4 = new THREE.Group(); G4.position.y = -22; scene.add(G4);
+// Lawn
+B(80,0.06,80, M.grass, 0, 0.03, 0, G4);
+// Driveway + walkway
+B(3.2,0.06,10, M.driveway, 0, 0.04, 9.0, G4);
+B(1.4,0.06, 3.8, M.driveway, 0, 0.04, 5.7, G4);
+// Trees
+(function(){
+  function addTree(x,z,h,r,p) {
+    const tk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.24,h,7), M.trunk);
+    tk.position.set(x,h/2,z); tk.castShadow=true; p.add(tk);
+    const cn = new THREE.Mesh(new THREE.SphereGeometry(r,8,6), M.tree);
+    cn.position.set(x,h+r*0.55,z); cn.castShadow=true; p.add(cn);
+  }
+  addTree(-8,  1, 2.6, 1.7, G4);
+  addTree(-8, -4, 2.8, 1.8, G4);
+  addTree( 8,  2, 2.4, 1.6, G4);
+  addTree( 8, -3, 2.6, 1.7, G4);
+  addTree(-9, -7, 2.2, 1.5, G4);
+  addTree( 9,  6, 2.4, 1.5, G4);
+})();
+// Shrubs along front
+[-4.0,-2.6,2.6,4.0].forEach(x=>{
+  const sh = new THREE.Mesh(new THREE.SphereGeometry(0.54,7,5),
+    new THREE.MeshLambertMaterial({color:0x28601a}));
+  sh.position.set(x,0.54,5.3); sh.castShadow=true; G4.add(sh);
+});
+
+// ── GSAP TIMELINE + SCROLLTRIGGER ───────────────────────────
+setPhase(0);   // initialise HUD text
+
+const buildTL = gsap.timeline({ paused: true });
+buildTL
+  .to(G1.position, { y:0, duration:1, ease:'power2.out' }, 0)
+  .to(G2.position, { y:0, duration:1, ease:'power2.out' }, 1)
+  .to(G3.position, { y:0, duration:1, ease:'power2.out' }, 2)
+  .to(G4.position, { y:0, duration:1, ease:'power2.out' }, 3);
 
 ScrollTrigger.create({
+  animation: buildTL,
   trigger: '#dev-section',
   start: 'top top',
   end: 'bottom bottom',
-  scrub: 0.4,           // tighter scrub = more direct response to scroll
+  scrub: 0.6,
   onUpdate(self) {
-    const p = self.progress;
-    const n = phases.length;         // 5
-    const builds = n - 1;            // 4 build transitions (land is already there)
-    progFill.style.width = `${p * 100}%`;
-
-    // Each phase (1-4) rises up from the ground over its 25% of total scroll
-    // clip-path inset(0 0 X% 0) — X=100 fully hidden, X=0 fully revealed
-    phases.forEach((ph, i) => {
-      if (i === 0) return; // land stays untouched
-      const el = document.getElementById(ph.id);
-      if (!el) return;
-
-      const buildStart = (i - 1) / builds;   // when this phase starts rising
-      const buildEnd   = i / builds;          // when it's fully revealed
-
-      let clip;
-      if (p <= buildStart) {
-        clip = 100;                           // not started — hidden below
-      } else if (p >= buildEnd) {
-        clip = 0;                             // finished — fully up
-      } else {
-        const progress = (p - buildStart) / (buildEnd - buildStart);
-        clip = (1 - progress) * 100;          // rising from bottom
-      }
-      el.style.clipPath = `inset(0 0 ${clip.toFixed(2)}% 0)`;
-    });
-
-    // HUD shows whichever phase is actively building
-    const idx = Math.min(Math.floor(p * n), n - 1);
+    progFill.style.width = `${self.progress * 100}%`;
+    const idx = Math.min(Math.floor(self.progress * phases.length), phases.length - 1);
     setPhase(idx);
   }
 });
+
+// ── RENDER LOOP ──────────────────────────────────────────────
+let orbitTheta = Math.atan2(20, 22);
+const orbitDist = Math.sqrt(20*20 + 22*22);
+(function animate() {
+  requestAnimationFrame(animate);
+  orbitTheta += 0.00025;    // very slow orbit — one revolution ≈ 7 min
+  camera.position.x = orbitDist * Math.sin(orbitTheta);
+  camera.position.z = orbitDist * Math.cos(orbitTheta);
+  camera.lookAt(0, 3, 0);
+  renderer.render(scene, camera);
+})();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}, { passive: true });
 
 // ── Stat counter animation ──
 document.querySelectorAll('[data-count]').forEach(el => {
