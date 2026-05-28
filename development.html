@@ -352,44 +352,144 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Photorealistic rendering
+renderer.toneMapping        = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.88;
+renderer.outputEncoding     = THREE.sRGBEncoding;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x080d1a);
-scene.fog = new THREE.FogExp2(0x080d1a, 0.020);
+scene.background = new THREE.Color(0x0b1525);
+scene.fog = new THREE.FogExp2(0x0b1525, 0.018);
 
 const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(20, 15, 22);
 camera.lookAt(0, 3, 0);
 
 // ── Lights ──────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0x334466, 1.8));
-const sun = new THREE.DirectionalLight(0xfff8e8, 2.4);
-sun.position.set(14, 26, 12);
+// Sky/ground hemisphere — warm overcast sky + reflected ground
+const hemi = new THREE.HemisphereLight(0x8ab4d8, 0x8a7850, 0.7);
+scene.add(hemi);
+// Main sun — warm golden-hour directional
+const sun = new THREE.DirectionalLight(0xfff0cc, 3.0);
+sun.position.set(16, 28, 14);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -22; sun.shadow.camera.right = 22;
-sun.shadow.camera.top  =  22; sun.shadow.camera.bottom= -22;
-sun.shadow.camera.near = 1;   sun.shadow.camera.far   = 100;
+sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.bias = -0.0008;
+sun.shadow.camera.left = -24; sun.shadow.camera.right = 24;
+sun.shadow.camera.top  =  24; sun.shadow.camera.bottom= -24;
+sun.shadow.camera.near = 1;   sun.shadow.camera.far   = 110;
 scene.add(sun);
-const fill = new THREE.DirectionalLight(0x1a2daa, 0.7);
-fill.position.set(-10, 6, -8); scene.add(fill);
-const rim  = new THREE.DirectionalLight(0x334488, 0.35);
-rim.position.set(-4, 10, 15);  scene.add(rim);
+// Cool bounce fill from opposite side
+const fill = new THREE.DirectionalLight(0x6688bb, 0.55);
+fill.position.set(-12, 8, -10); scene.add(fill);
 
-// ── Materials ────────────────────────────────────────────────
+// ── Procedural canvas textures ───────────────────────────────
+function mkTex(w, h, fn, rS, rT) {
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  fn(cv.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(cv);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  if (rS) t.repeat.set(rS, rT || rS);
+  return t;
+}
+// Concrete: gray base + fine aggregate noise
+const T_concrete = mkTex(512,512,(c,w,h)=>{
+  c.fillStyle='#8e8d7c'; c.fillRect(0,0,w,h);
+  for(let i=0;i<6000;i++){
+    const x=Math.random()*w, y=Math.random()*h, s=Math.random()*3+1;
+    const v=(Math.random()-0.5)*32;
+    const g=Math.round(142+v);
+    c.fillStyle=`rgba(${g},${g},${Math.round(g*0.94)},0.28)`;
+    c.fillRect(x,y,s,s);
+  }
+}, 2.5, 1.0);
+// Wood: warm grain lines
+const T_wood = mkTex(256,512,(c,w,h)=>{
+  for(let y=0;y<h;y++){
+    const grain = Math.sin(y*0.18)*14 + Math.sin(y*0.07)*8 + (Math.random()-0.5)*10;
+    const r=Math.round(185+grain), g=Math.round(112+grain*0.45), b=Math.round(48+grain*0.25);
+    c.fillStyle=`rgb(${Math.min(255,r)},${Math.min(255,g)},${Math.min(255,b)})`;
+    c.fillRect(0,y,w,1);
+  }
+}, 0.8, 2.2);
+// Lap siding: cream + horizontal shadow lines every ~20cm
+const T_siding = mkTex(512,256,(c,w,h)=>{
+  c.fillStyle='#d6cca8'; c.fillRect(0,0,w,h);
+  const lap=22;
+  for(let y=0;y<h;y+=lap){
+    // board face — subtle noise
+    for(let x=0;x<w;x+=4){
+      const v=(Math.random()-0.5)*12;
+      c.fillStyle=`rgba(255,255,255,${v>0?v/220:0})`;
+      c.fillRect(x,y+2,4,lap-5);
+      c.fillStyle=`rgba(0,0,0,${v<0?-v/200:0})`;
+      c.fillRect(x,y+2,4,lap-5);
+    }
+    // shadow line at butt
+    c.fillStyle='rgba(0,0,0,0.18)'; c.fillRect(0,y,w,2);
+    // highlight below butt
+    c.fillStyle='rgba(255,255,255,0.12)'; c.fillRect(0,y+2,w,2);
+  }
+}, 1.8, 1.4);
+// Roof shingles: dark with staggered tabs
+const T_shingle = mkTex(512,256,(c,w,h)=>{
+  c.fillStyle='#2e2618'; c.fillRect(0,0,w,h);
+  const rh=20, rw=36;
+  for(let row=0;row*rh<h+rh;row++){
+    const off=(row%2)*(rw/2);
+    for(let col=-1;col*rw<w+rw;col++){
+      const x=col*rw+off, y=row*rh;
+      const v=(Math.random()-0.5)*24;
+      const b=Math.round(48+v);
+      c.fillStyle=`rgb(${b},${Math.round(b*0.88)},${Math.round(b*0.72)})`;
+      c.fillRect(x+1,y+1,rw-2,rh-3);
+      c.fillStyle='rgba(0,0,0,0.45)'; c.fillRect(x+1,y+rh-4,rw-2,3);
+      c.fillStyle='rgba(255,255,255,0.06)'; c.fillRect(x+1,y+1,rw-2,3);
+    }
+  }
+}, 2.0, 1.0);
+// Grass: dense green variation
+const T_grass = mkTex(256,256,(c,w,h)=>{
+  const img = c.createImageData(w,h);
+  for(let i=0;i<img.data.length;i+=4){
+    const v=(Math.random()-0.5)*40;
+    img.data[i]   = Math.round(30+v*0.4);
+    img.data[i+1] = Math.round(88+v);
+    img.data[i+2] = Math.round(18+v*0.2);
+    img.data[i+3] = 255;
+  }
+  c.putImageData(img,0,0);
+}, 6, 6);
+// Asphalt: dark aggregate
+const T_asphalt = mkTex(256,256,(c,w,h)=>{
+  c.fillStyle='#424040'; c.fillRect(0,0,w,h);
+  for(let i=0;i<1400;i++){
+    const x=Math.random()*w, y=Math.random()*h, r=Math.random()*2.5+0.5;
+    const v=(Math.random()-0.5)*38;
+    const g=Math.round(88+v);
+    c.beginPath(); c.arc(x,y,r,0,Math.PI*2);
+    c.fillStyle=`rgb(${g},${g},${g})`; c.fill();
+  }
+}, 2.5, 2.5);
+
+// ── Materials (MeshStandardMaterial — physically-based) ──────
 const M = {
-  ground:   new THREE.MeshLambertMaterial({ color: 0x182208 }),
-  dirt:     new THREE.MeshLambertMaterial({ color: 0x6a5038 }),
-  concrete: new THREE.MeshLambertMaterial({ color: 0x909080 }),
-  wood:     new THREE.MeshLambertMaterial({ color: 0xcc8830 }),
-  siding:   new THREE.MeshLambertMaterial({ color: 0xd0c09a }),
-  roof:     new THREE.MeshLambertMaterial({ color: 0x3a2e1c, side: THREE.DoubleSide }),
-  glass:    new THREE.MeshLambertMaterial({ color: 0x88bbdd, transparent: true, opacity: 0.72 }),
-  door:     new THREE.MeshLambertMaterial({ color: 0x552a10 }),
-  grass:    new THREE.MeshLambertMaterial({ color: 0x28560e }),
-  driveway: new THREE.MeshLambertMaterial({ color: 0x484848 }),
-  tree:     new THREE.MeshLambertMaterial({ color: 0x22600e }),
-  trunk:    new THREE.MeshLambertMaterial({ color: 0x6a3e18 }),
+  ground:   new THREE.MeshStandardMaterial({ color:0x1a2408, roughness:0.97, metalness:0 }),
+  dirt:     new THREE.MeshStandardMaterial({ color:0x6a5038, roughness:0.98, metalness:0 }),
+  concrete: new THREE.MeshStandardMaterial({ map:T_concrete, color:0xb4b2a0, roughness:0.92, metalness:0 }),
+  wood:     new THREE.MeshStandardMaterial({ map:T_wood,     roughness:0.82, metalness:0 }),
+  siding:   new THREE.MeshStandardMaterial({ map:T_siding,   roughness:0.88, metalness:0 }),
+  roof:     new THREE.MeshStandardMaterial({ map:T_shingle,  roughness:0.90, metalness:0, side:THREE.DoubleSide }),
+  glass:    new THREE.MeshStandardMaterial({ color:0x9ad4ee, roughness:0.04, metalness:0.08, transparent:true, opacity:0.55, envMapIntensity:1.0 }),
+  winFrame: new THREE.MeshStandardMaterial({ color:0xf0ece0, roughness:0.78, metalness:0 }),
+  door:     new THREE.MeshStandardMaterial({ color:0x50280c, roughness:0.72, metalness:0.04 }),
+  trim:     new THREE.MeshStandardMaterial({ color:0xede8d8, roughness:0.80, metalness:0 }),
+  grass:    new THREE.MeshStandardMaterial({ map:T_grass,    roughness:0.96, metalness:0 }),
+  driveway: new THREE.MeshStandardMaterial({ map:T_asphalt,  roughness:0.94, metalness:0 }),
+  tree:     new THREE.MeshStandardMaterial({ color:0x1e5810, roughness:0.95, metalness:0 }),
+  treeDark: new THREE.MeshStandardMaterial({ color:0x163d0a, roughness:0.95, metalness:0 }),
+  trunk:    new THREE.MeshStandardMaterial({ color:0x5a3810, roughness:0.90, metalness:0 }),
 };
 
 // Helper: box mesh
@@ -477,30 +577,53 @@ B(0.22,WL_H,8.8,  M.siding, -5.2,FDN_H+WL_H/2,  0,   G3);
     B(0.22, ht, wd, M.siding, -5.2, cy, 0, G3);
   }
 })();
-// Windows — front
-B(1.3,1.2,0.10, M.glass,-2.7, FDN_H+2.0, 4.24, G3);
-B(1.3,1.2,0.10, M.glass, 2.7, FDN_H+2.0, 4.24, G3);
-// Windows — back
-B(1.6,1.2,0.10, M.glass,-3.5, FDN_H+1.8,-4.24, G3);
-B(1.6,1.2,0.10, M.glass, 3.5, FDN_H+1.8,-4.24, G3);
-// Windows — right side
-B(0.10,1.2,1.4, M.glass, 5.24, FDN_H+1.8,-1.5, G3);
-B(0.10,1.2,1.4, M.glass, 5.24, FDN_H+1.8, 1.5, G3);
-// Door
-B(1.5,2.5,0.10, M.door, 0, FDN_H+1.25, 4.24, G3);
-// Roof slopes (two rotated box panels)
-const ls = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.2), M.roof);
+// Front windows — glass + white frame + mullion
+(function(){
+  const fh=1.2, fw=1.3, ff=0.10, th=0.08;
+  [-2.7, 2.7].forEach(cx=>{
+    const cy=FDN_H+2.0, z=4.26;
+    B(fw, fh, th,          M.glass,    cx,     cy, z, G3);
+    B(fw+ff*2, ff, th*2,   M.winFrame, cx, cy+fh/2+ff/2, z, G3);
+    B(fw+ff*2, ff, th*2,   M.winFrame, cx, cy-fh/2-ff/2, z, G3);
+    B(ff, fh+ff*2, th*2,   M.winFrame, cx-fw/2-ff/2, cy, z, G3);
+    B(ff, fh+ff*2, th*2,   M.winFrame, cx+fw/2+ff/2, cy, z, G3);
+    B(ff*0.7, fh, th*2,    M.winFrame, cx, cy, z, G3);
+  });
+})();
+// Back windows
+B(1.6,1.2,0.08, M.glass,-3.5, FDN_H+1.8,-4.26, G3);
+B(1.6,1.2,0.08, M.glass, 3.5, FDN_H+1.8,-4.26, G3);
+// Right-side windows
+B(0.08,1.2,1.4, M.glass, 5.26, FDN_H+1.8,-1.5, G3);
+B(0.08,1.2,1.4, M.glass, 5.26, FDN_H+1.8, 1.5, G3);
+// Door body
+B(1.5,2.5,0.10, M.door, 0, FDN_H+1.25, 4.25, G3);
+// Door raised panels
+const dpM = new THREE.MeshStandardMaterial({color:0x3c1e08, roughness:0.70, metalness:0.05});
+[[-0.35, FDN_H+2.10],[0.35, FDN_H+2.10],[-0.35, FDN_H+1.10],[0.35, FDN_H+1.10]].forEach(([px,py])=>
+  B(0.55,0.85,0.06, dpM, px, py, 4.27, G3));
+// Brass door knob
+B(0.10,0.10,0.10, new THREE.MeshStandardMaterial({color:0xd4a83c, roughness:0.12, metalness:0.92}), 0.55, FDN_H+1.4, 4.28, G3);
+// Corner trim boards
+[[-5.0,4.2],[5.0,4.2],[-5.0,-4.2],[5.0,-4.2]].forEach(([x,z])=>
+  B(0.28, WL_H, 0.28, M.trim, x, FDN_H+WL_H/2, z, G3));
+// Fascia boards at eave line
+B(11.0,0.30,0.22, M.trim, 0, PLATE_Y+0.15,  4.62, G3);
+B(11.0,0.30,0.22, M.trim, 0, PLATE_Y+0.15, -4.62, G3);
+// Roof slopes (two rotated panels)
+const ls = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.4), M.roof);
 ls.rotation.z = RAF_ANG;
 ls.position.set(-RF_RUN/2, PLATE_Y+RF_RISE/2, 0);
 ls.castShadow = true; G3.add(ls);
-const rs = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.2), M.roof);
+const rs = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.4), M.roof);
 rs.rotation.z = -RAF_ANG;
 rs.position.set(RF_RUN/2, PLATE_Y+RF_RISE/2, 0);
 rs.castShadow = true; G3.add(rs);
 // Ridge cap
-B(11.4,0.28,0.5, M.roof, 0, PLATE_Y+RF_RISE+0.14, 0, G3);
-// Chimney
-B(0.9,2.8,0.9, M.concrete, 3.5, PLATE_Y+RF_RISE-0.6, -1.5, G3);
+B(11.6,0.30,0.55, M.roof, 0, PLATE_Y+RF_RISE+0.15, 0, G3);
+// Chimney + cap flashing
+B(0.95,3.0,0.95, M.concrete, 3.5, PLATE_Y+RF_RISE-0.5, -1.5, G3);
+B(1.15,0.14,1.15, new THREE.MeshStandardMaterial({color:0x707060, roughness:0.88, metalness:0}), 3.5, PLATE_Y+RF_RISE+2.57, -1.5, G3);
 
 // ── G4: LANDSCAPE ────────────────────────────────────────────
 const G4 = new THREE.Group(); G4.position.y = -22; scene.add(G4);
@@ -509,26 +632,33 @@ B(80,0.06,80, M.grass, 0, 0.03, 0, G4);
 // Driveway + walkway
 B(3.2,0.06,10, M.driveway, 0, 0.04, 9.0, G4);
 B(1.4,0.06, 3.8, M.driveway, 0, 0.04, 5.7, G4);
-// Trees
+// Trees — layered canopy for more realistic silhouette
 (function(){
   function addTree(x,z,h,r,p) {
-    const tk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.24,h,7), M.trunk);
-    tk.position.set(x,h/2,z); tk.castShadow=true; p.add(tk);
-    const cn = new THREE.Mesh(new THREE.SphereGeometry(r,8,6), M.tree);
-    cn.position.set(x,h+r*0.55,z); cn.castShadow=true; p.add(cn);
+    const tk = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.26,h,8), M.trunk);
+    tk.position.set(x,h/2,z); tk.castShadow=tk.receiveShadow=true; p.add(tk);
+    // Multi-layer canopy
+    [[r, h+r*0.45],[r*0.8, h+r*1.1],[r*0.55, h+r*1.65]].forEach(([cr,cy])=>{
+      const mat = (cy-h>r) ? M.treeDark : M.tree;
+      const cn = new THREE.Mesh(new THREE.SphereGeometry(cr,9,7), mat);
+      cn.position.set(x,cy,z); cn.castShadow=true; p.add(cn);
+    });
   }
-  addTree(-8,  1, 2.6, 1.7, G4);
-  addTree(-8, -4, 2.8, 1.8, G4);
-  addTree( 8,  2, 2.4, 1.6, G4);
-  addTree( 8, -3, 2.6, 1.7, G4);
-  addTree(-9, -7, 2.2, 1.5, G4);
-  addTree( 9,  6, 2.4, 1.5, G4);
+  addTree(-8,  1, 2.8, 1.7, G4);
+  addTree(-8, -4, 3.0, 1.9, G4);
+  addTree( 8,  2, 2.6, 1.6, G4);
+  addTree( 8, -3, 2.8, 1.7, G4);
+  addTree(-9, -7, 2.4, 1.5, G4);
+  addTree( 9,  6, 2.6, 1.6, G4);
 })();
-// Shrubs along front
+// Shrubs
+const shrubM = new THREE.MeshStandardMaterial({color:0x2a6018, roughness:0.94, metalness:0});
 [-4.0,-2.6,2.6,4.0].forEach(x=>{
-  const sh = new THREE.Mesh(new THREE.SphereGeometry(0.54,7,5),
-    new THREE.MeshLambertMaterial({color:0x28601a}));
-  sh.position.set(x,0.54,5.3); sh.castShadow=true; G4.add(sh);
+  const sh = new THREE.Mesh(new THREE.SphereGeometry(0.54,8,6), shrubM);
+  sh.position.set(x,0.50,5.3); sh.castShadow=true; G4.add(sh);
+  // second smaller sphere on top for bushier look
+  const sh2 = new THREE.Mesh(new THREE.SphereGeometry(0.36,7,5), shrubM);
+  sh2.position.set(x+0.1,0.78,5.3); sh2.castShadow=true; G4.add(sh2);
 });
 
 // ── GSAP TIMELINE + SCROLLTRIGGER ───────────────────────────
