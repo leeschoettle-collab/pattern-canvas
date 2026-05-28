@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buy &amp; Sell — LS Realty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #080d1a; --navy-mid: #0d1f3c;
+      --blue: #2d35d0; --blue-light: #4f58e8;
+      --gold: #c9a84c; --white: #ffffff; --muted: rgba(255,255,255,0.55);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--white); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 22px 48px; display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s, padding 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled { background: rgba(8,13,26,0.96); backdrop-filter: blur(16px); padding: 14px 48px; border-color: rgba(45,53,208,0.2); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.12em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 36px; list-style: none; align-items: center; }
+    .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+    .nav-cta { background: var(--blue) !important; color: var(--white) !important; padding: 8px 20px; border-radius: 4px; }
+
+    /* Hero */
+    #hero {
+      height: 90vh; min-height: 600px; display: flex; align-items: center; position: relative; overflow: hidden;
+      background: linear-gradient(175deg, var(--navy) 0%, #080e22 100%);
+      padding: 0 60px; padding-top: 100px;
+    }
+    .hero-bg-text {
+      position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(8rem, 18vw, 20rem);
+      color: rgba(45,53,208,0.06); letter-spacing: 0.05em; line-height: 1; pointer-events: none; white-space: nowrap;
+    }
+    .hero-content { max-width: 800px; position: relative; z-index: 1; }
+    .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 8vw, 7rem); line-height: 0.92; letter-spacing: 0.025em; margin-bottom: 28px; }
+    .hero-title .gold { color: var(--gold); }
+    .hero-sub { font-size: clamp(1rem, 1.5vw, 1.15rem); font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.75; max-width: 520px; margin-bottom: 44px; }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+
+    .btn { display: inline-block; padding: 14px 32px; border-radius: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; transition: all 0.25s; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(45,53,208,0.45); }
+    .btn-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+    .btn-gold:hover { background: rgba(201,168,76,0.1); transform: translateY(-2px); }
+
+    /* Stats */
+    #stats { background: var(--navy-mid); border-top: 1px solid rgba(45,53,208,0.18); border-bottom: 1px solid rgba(45,53,208,0.18); padding: 52px 0; }
+    .stats-grid { max-width: 1100px; margin: 0 auto; padding: 0 60px; display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; text-align: center; }
+    .stat-number { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 4vw, 4rem); color: var(--gold); line-height: 1; margin-bottom: 10px; }
+    .stat-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+
+    /* Section base */
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 5vw, 4rem); letter-spacing: 0.03em; line-height: 0.95; margin-bottom: 60px; }
+
+    /* Value props */
+    #value { padding: 130px 60px; max-width: 1200px; margin: 0 auto; }
+    .value-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+    .value-heading h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 4.5vw, 4rem); line-height: 0.95; letter-spacing: 0.03em; margin-bottom: 20px; }
+    .value-heading h2 .gold { color: var(--gold); }
+    .value-heading p { font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 36px; }
+    .value-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+    .value-item { display: flex; gap: 16px; align-items: flex-start; }
+    .value-icon { width: 36px; height: 36px; background: rgba(45,53,208,0.12); border: 1px solid rgba(45,53,208,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .value-icon svg { width: 15px; height: 15px; color: var(--blue-light); }
+    .value-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .value-item p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+    /* Process */
+    #process { background: var(--navy-mid); padding: 130px 60px; border-top: 1px solid rgba(45,53,208,0.12); }
+    .process-inner { max-width: 1200px; margin: 0 auto; }
+    .process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+    .process-steps::before { content: ''; position: absolute; top: 28px; left: 8%; right: 8%; height: 1px; background: linear-gradient(90deg, var(--blue) 0%, var(--gold) 100%); opacity: 0.3; z-index: 0; }
+    .p-step { text-align: center; padding: 0 20px; position: relative; z-index: 1; }
+    .p-step-num {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--navy); border: 1px solid var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+      color: var(--blue-light); margin: 0 auto 24px;
+    }
+    .p-step h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.06em; margin-bottom: 12px; }
+    .p-step p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+    /* Buyer vs seller */
+    #sides { padding: 130px 60px; max-width: 1200px; margin: 0 auto; }
+    .sides-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .side-card { background: var(--navy-mid); border: 1px solid rgba(45,53,208,0.15); border-radius: 8px; padding: 48px 40px; transition: border-color 0.3s, transform 0.3s; }
+    .side-card:hover { border-color: var(--blue); transform: translateY(-6px); }
+    .side-card-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .side-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 0.04em; margin-bottom: 16px; line-height: 1; }
+    .side-card p { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 28px; }
+    .side-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .side-list li { font-size: 13px; color: rgba(255,255,255,0.7); padding-left: 16px; position: relative; line-height: 1.5; }
+    .side-list li::before { content: '→'; position: absolute; left: 0; color: var(--blue-light); font-size: 11px; top: 2px; }
+
+    /* CTA */
+    #cta { padding: 140px 60px; text-align: center; position: relative; overflow: hidden; }
+    #cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 100% at 50% 50%, rgba(45,53,208,0.1) 0%, transparent 65%); pointer-events: none; }
+    #cta h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 5rem); letter-spacing: 0.03em; line-height: 0.95; max-width: 700px; margin: 0 auto 20px; }
+    #cta h2 .gold { color: var(--gold); }
+    #cta p { font-size: 15px; color: var(--muted); max-width: 500px; margin: 0 auto 48px; line-height: 1.8; }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    footer { background: #040710; padding: 40px 60px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.12em; color: rgba(255,255,255,0.35); }
+    .footer-logo span { color: rgba(201,168,76,0.5); }
+    footer p { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    .reveal { opacity: 0; transform: translateY(28px); }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; } nav.scrolled { padding: 12px 24px; }
+      .nav-links { display: none; }
+      #hero { padding: 0 24px; padding-top: 90px; }
+      #stats .stats-grid { grid-template-columns: repeat(2,1fr); padding: 0 24px; }
+      #value { padding: 80px 24px; }
+      .value-grid { grid-template-columns: 1fr; gap: 40px; }
+      #process { padding: 80px 24px; }
+      .process-steps { grid-template-columns: repeat(2,1fr); gap: 32px; }
+      .process-steps::before { display: none; }
+      #sides { padding: 80px 24px; }
+      .sides-grid { grid-template-columns: 1fr; }
+      #cta { padding: 80px 24px; }
+      footer { flex-direction: column; gap: 10px; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="index.html" class="nav-logo">LS <span>REALTY</span></a>
+  <ul class="nav-links">
+    <li><a href="buy-sell.html" class="active">Buy &amp; Sell</a></li>
+    <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="development.html">Development</a></li>
+    <li><a href="index.html#invest">Invest</a></li>
+    <li><a href="index.html#contact" class="nav-cta">Get In Touch</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-bg-text">DEALS</div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Buyer &amp; Seller Agent · LS Realty</p>
+    <h1 class="hero-title">EVERY DEAL.<br><span class="gold">ANALYZED.</span></h1>
+    <p class="hero-sub">Most agents show homes. Lee underwrites them. Every offer is backed by market data, and every negotiation is built to win — for buyers and sellers who demand more than a signature.</p>
+    <div class="hero-btns">
+      <a href="#sides" class="btn btn-primary">Buying or Selling?</a>
+      <a href="index.html#contact" class="btn btn-gold">Talk to Lee</a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="reveal"><div class="stat-number" data-count="10" data-suffix="+">10+</div><div class="stat-label">Years Experience</div></div>
+    <div class="reveal"><div class="stat-number" data-count="50" data-prefix="$" data-suffix="M+">$50M+</div><div class="stat-label">In Transactions</div></div>
+    <div class="reveal"><div class="stat-number" data-count="98" data-suffix="%">98%</div><div class="stat-label">List-to-Sale Ratio</div></div>
+    <div class="reveal"><div class="stat-number" data-count="14">14</div><div class="stat-label">Avg. Days to Offer</div></div>
+  </div>
+</section>
+
+<!-- Value Props -->
+<section id="value">
+  <div class="value-grid">
+    <div class="value-heading reveal">
+      <p class="section-label">The Difference</p>
+      <h2>WHY ANALYSIS<br>WINS THE <span class="gold">DEAL</span></h2>
+      <p>The difference between a good agent and a great one isn't relationships — it's information. Lee enters every negotiation with a data advantage and the skill to use it.</p>
+      <a href="index.html#contact" class="btn btn-primary">Schedule a Consultation</a>
+    </div>
+    <ul class="value-list">
+      <li class="value-item reveal">
+        <div class="value-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+        <div>
+          <h4>Comparative Market Analysis</h4>
+          <p>Before any offer is written, Lee runs a full CMA — active, pending, and sold comps, adjusted for condition, location, and timing.</p>
+        </div>
+      </li>
+      <li class="value-item reveal">
+        <div class="value-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></div>
+        <div>
+          <h4>Offer Strategy</h4>
+          <p>Offer price is just one lever. Lee structures terms — escalation clauses, contingency timing, closing flexibility — to win in any market condition.</p>
+        </div>
+      </li>
+      <li class="value-item reveal">
+        <div class="value-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div>
+        <div>
+          <h4>Negotiation Advocacy</h4>
+          <p>Lee doesn't just present offers — he advocates. Every counter, every inspection response, every closing credit is a negotiation Lee is trained to win.</p>
+        </div>
+      </li>
+      <li class="value-item reveal">
+        <div class="value-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div>
+          <h4>Transaction Management</h4>
+          <p>From accepted offer to closing day — inspections, appraisals, lender coordination, title. Lee manages every step so nothing falls through the cracks.</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- Process -->
+<section id="process">
+  <div class="process-inner">
+    <p class="section-label reveal">How It Works</p>
+    <h2 class="section-title reveal">FROM SEARCH<br>TO KEYS</h2>
+    <div class="process-steps">
+      <div class="p-step reveal">
+        <div class="p-step-num">01</div>
+        <h3>Consult</h3>
+        <p>Goals, timeline, budget, and non-negotiables — Lee builds a clear picture of what success looks like before a single property is toured.</p>
+      </div>
+      <div class="p-step reveal">
+        <div class="p-step-num">02</div>
+        <h3>Search & Analyze</h3>
+        <p>Market-matched properties evaluated for true value — not just list price. Hidden costs, neighborhood trends, and resale potential all factored in.</p>
+      </div>
+      <div class="p-step reveal">
+        <div class="p-step-num">03</div>
+        <h3>Negotiate</h3>
+        <p>Offer written with intent and strategy. Every term is deliberate — price, contingencies, possession — crafted to win and protect your interests.</p>
+      </div>
+      <div class="p-step reveal">
+        <div class="p-step-num">04</div>
+        <h3>Close</h3>
+        <p>Coordinated, stress-free closing. Lee handles every party in the transaction so you show up to sign — not to manage chaos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Buyer vs Seller -->
+<section id="sides">
+  <p class="section-label reveal">Choose Your Path</p>
+  <h2 class="section-title reveal">BUYING OR<br>SELLING?</h2>
+  <div class="sides-grid">
+    <div class="side-card reveal">
+      <div class="side-card-tag">For Buyers</div>
+      <h3>FIND YOUR HOME.<br>WIN THE DEAL.</h3>
+      <p>In a competitive market, buyers who win are the ones with the right agent. Lee's analytical approach finds value others miss — and his negotiation closes the gap.</p>
+      <ul class="side-list">
+        <li>True market value analysis before every offer</li>
+        <li>Competitive offer strategy that wins in multiple-offer scenarios</li>
+        <li>Full inspection and appraisal negotiation support</li>
+        <li>Lender and title coordination through closing</li>
+        <li>First-time buyer education — demystify every step</li>
+      </ul>
+      <a href="index.html#contact" class="btn btn-primary">Start Your Search</a>
+    </div>
+    <div class="side-card reveal">
+      <div class="side-card-tag">For Sellers</div>
+      <h3>LIST SMART.<br>SELL FOR MORE.</h3>
+      <p>Pricing strategy, preparation guidance, and aggressive marketing — Lee's sellers walk away with more because every decision is data-driven from day one.</p>
+      <ul class="side-list">
+        <li>Strategic pricing based on real market analysis</li>
+        <li>Pre-listing preparation recommendations that move the needle</li>
+        <li>Professional photography and targeted marketing</li>
+        <li>Offer evaluation and counter-strategy</li>
+        <li>Negotiation through inspection and appraisal to protect your net</li>
+      </ul>
+      <a href="index.html#contact" class="btn btn-primary">Get a Home Valuation</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <p class="section-label reveal" style="text-align:center">Work With Lee</p>
+  <h2 class="reveal">READY TO MAKE<br>YOUR <span class="gold">MOVE?</span></h2>
+  <p class="reveal">Whether you're buying your first home or selling your fourth — Lee brings the analysis and negotiation skills to get you to the right outcome.</p>
+  <div class="cta-btns reveal">
+    <a href="index.html#contact" class="btn btn-primary">Schedule a Consultation</a>
+    <a href="index.html#contact" class="btn btn-gold">Get a Home Valuation</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">LS <span>REALTY</span></div>
+  <p>© 2025 LS Realty · Lee Schoettle · All rights reserved</p>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
+// ── Stat counter animation ──
+document.querySelectorAll('[data-count]').forEach(el => {
+  const target = +el.dataset.count;
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const obj    = { val: 0 };
+  ScrollTrigger.create({
+    trigger: el, start: 'top 88%', once: true,
+    onEnter() {
+      gsap.to(obj, { val: target, duration: 1.8, ease: 'power2.out',
+        onUpdate() { el.textContent = prefix + Math.round(obj.val) + suffix; }
+      });
+    }
+  });
+});
+
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, { opacity: 1, y: 0, duration: 0.75, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 87%', toggleActions: 'play none none none' } });
+});
+</script>
+</body>
+</html>

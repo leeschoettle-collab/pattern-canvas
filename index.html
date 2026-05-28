@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LS Realty — Lee Schoettle</title>
+  <meta name="description" content="Real estate agent, fix & flip investor, and developer. Lee Schoettle analyzes deals, negotiates hard, and executes with precision." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #080d1a;
+      --navy-mid:   #0d1f3c;
+      --blue:       #2d35d0;
+      --blue-light: #4f58e8;
+      --steel:      #7a8090;
+      --gold:       #c9a84c;
+      --gold-light: #e8c96a;
+      --white:      #ffffff;
+      --muted:      rgba(255,255,255,0.55);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 22px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.4s, padding 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      background: rgba(8,13,26,0.96);
+      backdrop-filter: blur(16px);
+      padding: 14px 48px;
+      border-color: rgba(45,53,208,0.2);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+      align-items: center;
+    }
+    .nav-links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      background: var(--blue) !important;
+      color: var(--white) !important;
+      padding: 8px 20px;
+      border-radius: 4px;
+    }
+    .nav-cta:hover { background: var(--blue-light) !important; }
+
+    /* ── Hero ── */
+    #hero {
+      position: relative;
+      height: 100vh;
+      min-height: 700px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+    }
+    .hero-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 70% at 15% 55%, rgba(45,53,208,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 85% 20%, rgba(201,168,76,0.07) 0%, transparent 55%),
+        linear-gradient(175deg, var(--navy) 0%, #080e22 100%);
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 60px;
+      max-width: 900px;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 24px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 9vw, 8rem);
+      line-height: 0.92;
+      letter-spacing: 0.025em;
+      margin-bottom: 32px;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    .hero-title .gold { color: var(--gold); }
+    .hero-sub {
+      font-size: clamp(1rem, 1.6vw, 1.15rem);
+      font-weight: 300;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.75;
+      max-width: 540px;
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: var(--white);
+    }
+    .btn-primary:hover {
+      background: var(--blue-light);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(45,53,208,0.45);
+    }
+    .btn-gold {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    .btn-gold:hover {
+      background: rgba(201,168,76,0.1);
+      transform: translateY(-2px);
+    }
+
+    /* ── Scroll indicator ── */
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px; left: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.25);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    .scroll-line {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5));
+      animation: lineGrow 2s ease-in-out infinite;
+    }
+    @keyframes lineGrow {
+      0%,100% { opacity:0.3; transform:scaleX(1); }
+      50% { opacity:1; transform:scaleX(1.15); }
+    }
+
+    /* ── Stats bar ── */
+    #stats {
+      background: var(--navy-mid);
+      border-top: 1px solid rgba(45,53,208,0.18);
+      border-bottom: 1px solid rgba(45,53,208,0.18);
+      padding: 52px 0;
+    }
+    .stats-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 60px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 4vw, 4rem);
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Section base ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      letter-spacing: 0.03em;
+      line-height: 0.95;
+      margin-bottom: 64px;
+    }
+
+    /* ── Services ── */
+    #services {
+      padding: 130px 60px;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .service-card {
+      background: var(--navy-mid);
+      border: 1px solid rgba(45,53,208,0.15);
+      border-radius: 8px;
+      padding: 44px 36px;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+    .service-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-8px);
+      box-shadow: 0 24px 64px rgba(45,53,208,0.2);
+    }
+    .service-icon {
+      width: 44px; height: 44px;
+      color: var(--blue-light);
+      margin-bottom: 28px;
+    }
+    .service-card h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+    }
+    .service-card p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+    .service-link {
+      display: inline-block;
+      margin-top: 28px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .service-link::after { content: ' →'; }
+
+    /* ── Why Lee ── */
+    #why {
+      background: var(--navy-mid);
+      padding: 130px 60px;
+      border-top: 1px solid rgba(45,53,208,0.12);
+    }
+    .why-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 5fr 6fr;
+      gap: 96px;
+      align-items: center;
+    }
+    .why-photo-wrap {
+      position: relative;
+    }
+    .why-photo-placeholder {
+      aspect-ratio: 4/5;
+      background: linear-gradient(145deg, #0d1838, #0a1225);
+      border-radius: 8px;
+      border: 1px solid rgba(45,53,208,0.2);
+      overflow: hidden;
+    }
+    .why-photo-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+    .why-badge {
+      position: absolute;
+      bottom: -18px; right: -18px;
+      background: var(--blue);
+      border-radius: 8px;
+      padding: 20px 26px;
+      text-align: center;
+    }
+    .why-badge-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+    .why-badge-sub {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+    .why-content h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 4vw, 3.8rem);
+      letter-spacing: 0.03em;
+      line-height: 0.95;
+      margin-bottom: 20px;
+    }
+    .why-content > p {
+      font-size: 15px;
+      line-height: 1.85;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 44px;
+    }
+    .diff-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .diff-item {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .diff-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .diff-item h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .diff-item p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    /* ── Invest CTA ── */
+    #invest {
+      padding: 150px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #invest::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 90% 100% at 50% 60%, rgba(45,53,208,0.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    #invest h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      letter-spacing: 0.03em;
+      line-height: 0.95;
+      max-width: 820px;
+      margin: 0 auto 24px;
+    }
+    #invest h2 .gold { color: var(--gold); }
+    #invest p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.55);
+      max-width: 540px;
+      margin: 0 auto 52px;
+      line-height: 1.85;
+    }
+    .invest-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── Contact ── */
+    #contact {
+      background: var(--navy-mid);
+      padding: 130px 60px;
+      border-top: 1px solid rgba(45,53,208,0.12);
+    }
+    .contact-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 96px;
+    }
+    #contact h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 4vw, 3.8rem);
+      letter-spacing: 0.03em;
+      line-height: 0.95;
+      margin-bottom: 16px;
+    }
+    .contact-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 44px;
+    }
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .contact-icon {
+      width: 38px; height: 38px;
+      background: rgba(45,53,208,0.12);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .contact-icon svg { width: 16px; height: 16px; color: var(--blue-light); }
+    .contact-row span {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 13px 16px;
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: rgba(255,255,255,0.28); }
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus { border-color: var(--blue); }
+    .contact-form select { color: rgba(255,255,255,0.28); cursor: pointer; }
+    .contact-form select option { background: #0d1f3c; color: var(--white); }
+    .contact-form textarea { min-height: 110px; resize: vertical; }
+
+    /* ── Footer ── */
+    footer {
+      background: #040710;
+      padding: 40px 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.35);
+    }
+    .footer-logo span { color: rgba(201,168,76,0.5); }
+    footer p { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    /* ── Reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      nav.scrolled { padding: 12px 24px; }
+      .nav-links { display: none; }
+      .hero-content { padding: 0 24px; }
+      .hero-scroll { left: 24px; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); padding: 0 24px; }
+      #services { padding: 80px 24px; }
+      .services-grid { grid-template-columns: 1fr; }
+      #why { padding: 80px 24px; }
+      .why-inner { grid-template-columns: 1fr; gap: 56px; }
+      .why-badge { bottom: -10px; right: -10px; }
+      #invest { padding: 100px 24px; }
+      #contact { padding: 80px 24px; }
+      .contact-inner { grid-template-columns: 1fr; gap: 56px; }
+      .form-row { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 10px; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav id="nav">
+  <a href="#" class="nav-logo">LS <span>REALTY</span></a>
+  <ul class="nav-links">
+    <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="development.html">Development</a></li>
+    <li><a href="#invest">Invest</a></li>
+    <li><a href="#contact" class="nav-cta">Get In Touch</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-gradient"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">LS Realty · Lee Schoettle</p>
+    <h1 class="hero-title">
+      ANALYZE.<br>
+      NEGOTIATE.<br>
+      <span class="gold">BUILD.</span>
+    </h1>
+    <p class="hero-sub">
+      Sharp deal analysis. Elite negotiation. Hands-on project management. Whether you're buying your first home or deploying capital into your next development — Lee delivers.
+    </p>
+    <div class="hero-btns">
+      <a href="#services" class="btn btn-primary">Explore Services</a>
+      <a href="#invest" class="btn btn-gold">Partner With Me</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- Stats -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-number" data-count="10" data-suffix="+">10+</div>
+      <div class="stat-label">Years in Real Estate</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-count="50" data-prefix="$" data-suffix="M+">$50M+</div>
+      <div class="stat-label">In Transactions</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-count="30" data-suffix="+">30+</div>
+      <div class="stat-label">Deals Closed</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-count="100" data-suffix="%">100%</div>
+      <div class="stat-label">Projects Delivered</div>
+    </div>
+  </div>
+</section>
+
+<!-- Services -->
+<section id="services">
+  <p class="section-label reveal">What I Do</p>
+  <h2 class="section-title reveal">THREE WAYS<br>I DELIVER VALUE</h2>
+  <div class="services-grid">
+
+    <div class="service-card reveal">
+      <svg class="service-icon" fill="none" viewBox="0 0 48 48" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 36L18 24L26 32L36 20L42 26"/>
+        <path d="M38 14h6v6"/>
+      </svg>
+      <h3>Buyer & Seller Agent</h3>
+      <p>I don't just show homes — I analyze the numbers. Every offer I write is backed by market data, and every negotiation is structured to win. My clients close at the right price.</p>
+      <a href="#contact" class="service-link">Work With Me</a>
+    </div>
+
+    <div class="service-card reveal">
+      <svg class="service-icon" fill="none" viewBox="0 0 48 48" stroke="currentColor" stroke-width="1.5">
+        <rect x="6" y="20" width="36" height="22" rx="2"/>
+        <path d="M2 20L24 4L46 20"/>
+        <path d="M18 42V30h12v12"/>
+      </svg>
+      <h3>Fix & Flip</h3>
+      <p>Finding undervalued properties is just the start. The real edge is execution — accurate rehab budgets, vetted contractors, and a process that protects your return every time.</p>
+      <a href="#invest" class="service-link">Partner With Me</a>
+    </div>
+
+    <div class="service-card reveal">
+      <svg class="service-icon" fill="none" viewBox="0 0 48 48" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="28" width="14" height="16" rx="1"/>
+        <rect x="17" y="18" width="14" height="26" rx="1"/>
+        <rect x="30" y="10" width="14" height="34" rx="1"/>
+      </svg>
+      <h3>Development</h3>
+      <p>Ground-up projects demand a builder's mindset. I manage every phase — entitlements, design, construction — with a system that keeps projects on budget and on schedule.</p>
+      <a href="#invest" class="service-link">Explore Opportunities</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- Why Lee -->
+<section id="why">
+  <div class="why-inner">
+    <div class="why-photo-wrap reveal">
+      <div class="why-photo-placeholder">
+        <img src="assets/lee-headshot.png" alt="Lee Schoettle" />
+      </div>
+      <div class="why-badge">
+        <div class="why-badge-num">LS</div>
+        <div class="why-badge-sub">Realty</div>
+      </div>
+    </div>
+    <div class="why-content">
+      <p class="section-label reveal">Why Lee</p>
+      <h2 class="reveal">THE OPERATOR<br>BEHIND THE DEAL</h2>
+      <p class="reveal">Most real estate professionals are good at one thing. Lee brings a rare combination: the analytical rigor to spot real value, the negotiation skill to capture it, and the operational discipline to build it.</p>
+      <ul class="diff-list">
+        <li class="diff-item reveal">
+          <div class="diff-dot"></div>
+          <div>
+            <h4>Deal Analysis</h4>
+            <p>Every acquisition starts with the numbers — ARV, rehab estimates, holding costs, and exit strategy — before a single offer is written.</p>
+          </div>
+        </li>
+        <li class="diff-item reveal">
+          <div class="diff-dot"></div>
+          <div>
+            <h4>Elite Negotiation</h4>
+            <p>Clients get an advocate who understands leverage, timing, and how to structure terms that win in any market condition.</p>
+          </div>
+        </li>
+        <li class="diff-item reveal">
+          <div class="diff-dot"></div>
+          <div>
+            <h4>People & Process Management</h4>
+            <p>Renovations and development projects succeed on execution. Lee's systems keep contractors accountable, timelines tight, and investor returns protected.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Invest CTA -->
+<section id="invest">
+  <p class="section-label reveal">For Investors</p>
+  <h2 class="reveal">READY TO PUT YOUR<br>CAPITAL <span class="gold">TO WORK?</span></h2>
+  <p class="reveal">LS Realty is actively sourcing fix & flip and ground-up development opportunities. If you're looking for an experienced operator with a proven process, let's talk.</p>
+  <div class="invest-btns reveal">
+    <a href="#contact" class="btn btn-primary">Schedule a Call</a>
+    <a href="#contact" class="btn btn-gold">Request Deal Deck</a>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <div class="contact-inner">
+    <div>
+      <p class="section-label reveal">Contact</p>
+      <h2 class="reveal">LET'S BUILD<br>SOMETHING.</h2>
+      <p class="contact-desc reveal">Whether you're buying, selling, or looking to invest — reach out and let's find the opportunity that fits your goals.</p>
+      <div class="contact-links">
+        <div class="contact-row reveal">
+          <div class="contact-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <span>leeschoettle@gmail.com</span>
+        </div>
+        <div class="contact-row reveal">
+          <div class="contact-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+            </svg>
+          </div>
+          <span>715-505-5250</span>
+        </div>
+      </div>
+    </div>
+    <form class="contact-form reveal" onsubmit="handleForm(event)">
+      <div class="form-row">
+        <input type="text" placeholder="First Name" required />
+        <input type="text" placeholder="Last Name" required />
+      </div>
+      <input type="email" placeholder="Email Address" required />
+      <input type="tel" placeholder="Phone Number" />
+      <select>
+        <option value="" disabled selected>I'm interested in...</option>
+        <option>Buying a Home</option>
+        <option>Selling a Home</option>
+        <option>Fix &amp; Flip Partnership</option>
+        <option>Development Partnership</option>
+        <option>Other</option>
+      </select>
+      <textarea placeholder="Tell me about your goals..."></textarea>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Send Message</button>
+    </form>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">LS <span>REALTY</span></div>
+  <p>© 2025 LS Realty · Lee Schoettle · All rights reserved</p>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// ── Hero canvas: floating nodes + connection lines ──
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Node {
+  constructor() { this.init(); }
+  init() {
+    this.x  = Math.random() * canvas.width;
+    this.y  = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * 0.28;
+    this.vy = (Math.random() - 0.5) * 0.28;
+    this.r  = 1.2 + Math.random() * 1.6;
+    this.isGold = Math.random() > 0.75;
+    this.alpha  = 0.25 + Math.random() * 0.5;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.x < -10 || this.x > canvas.width + 10 ||
+        this.y < -10 || this.y > canvas.height + 10) this.init();
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = this.isGold
+      ? `rgba(201,168,76,${this.alpha})`
+      : `rgba(79,88,232,${this.alpha})`;
+    ctx.fill();
+  }
+}
+
+const nodes = Array.from({ length: 90 }, () => new Node());
+const MAX_DIST = 140;
+
+(function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  nodes.forEach(n => { n.update(); n.draw(); });
+  for (let i = 0; i < nodes.length - 1; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const d  = Math.sqrt(dx * dx + dy * dy);
+      if (d < MAX_DIST) {
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(nodes[j].x, nodes[j].y);
+        ctx.strokeStyle = `rgba(45,53,208,${(1 - d / MAX_DIST) * 0.1})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(loop);
+})();
+
+// ── Nav: solid on scroll ──
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+}, { passive: true });
+
+// ── Hero entrance ──
+gsap.timeline({ delay: 0.2 })
+  .to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+  .to('.hero-title',   { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, '-=0.35')
+  .to('.hero-sub',     { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
+  .to('.hero-btns',    { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.3');
+
+// ── Scroll reveals ──
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, {
+    opacity: 1, y: 0,
+    duration: 0.75,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: el,
+      start: 'top 87%',
+      toggleActions: 'play none none none'
+    }
+  });
+});
+
+// ── Stat counter animation ──
+document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+  const target  = +el.dataset.count;
+  const prefix  = el.dataset.prefix  || '';
+  const suffix  = el.dataset.suffix  || '';
+  const obj     = { val: 0 };
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 88%',
+    once: true,
+    onEnter() {
+      gsap.to(obj, {
+        val: target,
+        duration: 1.8,
+        ease: 'power2.out',
+        onUpdate() { el.textContent = prefix + Math.round(obj.val) + suffix; }
+      });
+    }
+  });
+});
+
+// ── Contact form ──
+function handleForm(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.textContent = 'Message Sent ✓';
+  btn.style.background = 'var(--gold)';
+  btn.style.color = '#000';
+  setTimeout(() => {
+    btn.textContent = 'Send Message';
+    btn.style.background = '';
+    btn.style.color = '';
+    e.target.reset();
+  }, 3000);
+}
+</script>
+</body>
+</html>

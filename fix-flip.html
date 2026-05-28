@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fix &amp; Flip — LS Realty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #080d1a; --navy-mid: #0d1f3c;
+      --blue: #2d35d0; --blue-light: #4f58e8;
+      --gold: #c9a84c; --gold-light: #e8c96a;
+      --white: #ffffff; --muted: rgba(255,255,255,0.55);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--white); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 22px 48px; display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s, padding 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled { background: rgba(8,13,26,0.96); backdrop-filter: blur(16px); padding: 14px 48px; border-color: rgba(45,53,208,0.2); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.12em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 36px; list-style: none; align-items: center; }
+    .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+    .nav-cta { background: var(--blue) !important; color: var(--white) !important; padding: 8px 20px; border-radius: 4px; }
+
+    /* Hero */
+    #hero {
+      height: 80vh; min-height: 560px; display: flex; align-items: center;
+      background: radial-gradient(ellipse 80% 70% at 20% 60%, rgba(45,53,208,0.18) 0%, transparent 60%),
+                  linear-gradient(175deg, var(--navy) 0%, #080e22 100%);
+      padding: 0 60px; padding-top: 100px;
+    }
+    .hero-content { max-width: 800px; }
+    .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 8vw, 7rem); line-height: 0.92; letter-spacing: 0.025em; margin-bottom: 28px; }
+    .hero-title .gold { color: var(--gold); }
+    .hero-sub { font-size: clamp(1rem, 1.5vw, 1.1rem); font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.75; max-width: 520px; margin-bottom: 40px; }
+    .btn { display: inline-block; padding: 14px 32px; border-radius: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; transition: all 0.25s; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(45,53,208,0.45); }
+    .btn-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+    .btn-gold:hover { background: rgba(201,168,76,0.1); transform: translateY(-2px); }
+
+    /* ── Before/After Animation ── */
+    #flip-section { position: relative; }
+    #flip-pin {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header overlay */
+    .flip-header {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+      padding: 20px 48px; display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(8,13,26,0.7) 0%, transparent 100%);
+    }
+    .flip-label {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.15em;
+      padding: 6px 20px; border-radius: 3px;
+    }
+    .flip-label-before { background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.6); }
+    .flip-label-after  { background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.4); color: var(--gold); }
+
+    /* Progress bar */
+    .flip-progress-wrap {
+      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+      z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      pointer-events: none;
+    }
+    .flip-progress-bar { width: 220px; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; }
+    .flip-progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--gold)); width: 0%; border-radius: 2px; transition: width 0.05s linear; }
+    .flip-progress-text { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+
+    /* ── PHOTO SCENE ── */
+    .scene-wrap { position: relative; flex: 1; overflow: hidden; }
+
+    /* Each scene layer fills the wrap and splits into left (exterior) / right (interior) */
+    .scene-layer {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .scene-panel {
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    /* Before: heavily desaturated and darkened — looks neglected */
+    .scene-before {
+      filter: grayscale(0.85) brightness(0.45) contrast(1.05) sepia(0.3);
+    }
+
+    /* After: clips left-to-right as scroll drives the reveal */
+    .scene-after {
+      clip-path: inset(0 100% 0 0);
+      z-index: 1;
+    }
+
+    /* Cinematic vignette on top of both layers */
+    .scene-vignette {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      background:
+        linear-gradient(to right, rgba(8,13,26,0.55) 0%, transparent 20%, transparent 80%, rgba(8,13,26,0.55) 100%),
+        linear-gradient(to bottom, rgba(8,13,26,0.4) 0%, transparent 25%, transparent 70%, rgba(8,13,26,0.5) 100%);
+    }
+
+    /* Divider blade between before and after */
+    #divider {
+      position: absolute; top: 0; bottom: 0; left: 0%; width: 3px; z-index: 10;
+      background: linear-gradient(180deg, var(--gold), var(--blue));
+      box-shadow: 0 0 16px rgba(201,168,76,0.55), 0 0 40px rgba(201,168,76,0.2);
+      pointer-events: none;
+    }
+    #divider::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.9), 0 0 40px rgba(201,168,76,0.4);
+    }
+
+    /* Centre dashed line separating ext / int halves */
+    .scene-mid-line {
+      position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
+      background: rgba(255,255,255,0.12);
+      pointer-events: none; z-index: 4;
+    }
+    .half-label {
+      position: absolute; bottom: 16px; z-index: 5;
+      font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); transform: translateX(-50%);
+      pointer-events: none;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+
+    /* Improvement label pins */
+    .imp-label {
+      position: absolute; z-index: 15; pointer-events: none;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.4s, transform 0.4s;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .imp-label.visible { opacity: 1; transform: translateY(0); }
+    .imp-label-text {
+      background: rgba(8,13,26,0.75);
+      border: 1px solid rgba(201,168,76,0.55);
+      color: var(--gold); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 3px; white-space: nowrap;
+      backdrop-filter: blur(6px);
+    }
+    .imp-label-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.8); }
+
+    /* Process section */
+    #process { padding: 120px 60px; max-width: 1200px; margin: 0 auto; }
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 5vw, 4rem); letter-spacing: 0.03em; line-height: 0.95; margin-bottom: 64px; }
+    .process-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .step { background: var(--navy-mid); border: 1px solid rgba(45,53,208,0.15); padding: 40px 32px; position: relative; transition: border-color 0.3s; }
+    .step:hover { border-color: var(--blue); }
+    .step-num { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; color: rgba(45,53,208,0.25); line-height: 1; margin-bottom: 16px; }
+    .step h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 12px; }
+    .step p { font-size: 13px; line-height: 1.75; color: var(--muted); }
+
+    /* Metrics */
+    #metrics { background: var(--navy-mid); border-top: 1px solid rgba(45,53,208,0.15); border-bottom: 1px solid rgba(45,53,208,0.15); padding: 80px 60px; }
+    .metrics-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .metrics-left h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 4vw, 3.5rem); letter-spacing: 0.03em; line-height: 0.95; margin-bottom: 20px; }
+    .metrics-left p { font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 32px; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .metric-card { background: rgba(45,53,208,0.08); border: 1px solid rgba(45,53,208,0.2); border-radius: 6px; padding: 24px; }
+    .metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+    .metric-label { font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+    /* CTA */
+    #cta { padding: 140px 60px; text-align: center; position: relative; overflow: hidden; }
+    #cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 100% at 50% 50%, rgba(45,53,208,0.1) 0%, transparent 65%); pointer-events: none; }
+    #cta h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 5rem); letter-spacing: 0.03em; line-height: 0.95; max-width: 700px; margin: 0 auto 20px; }
+    #cta h2 .gold { color: var(--gold); }
+    #cta p { font-size: 15px; color: var(--muted); max-width: 500px; margin: 0 auto 48px; line-height: 1.8; }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    footer { background: #040710; padding: 40px 60px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.12em; color: rgba(255,255,255,0.35); }
+    .footer-logo span { color: rgba(201,168,76,0.5); }
+    footer p { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    .reveal { opacity: 0; transform: translateY(28px); }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; } nav.scrolled { padding: 12px 24px; }
+      .nav-links { display: none; }
+      #hero { padding: 0 24px; padding-top: 90px; }
+      #process { padding: 80px 24px; }
+      .process-steps { grid-template-columns: 1fr; }
+      #metrics { padding: 60px 24px; }
+      .metrics-inner { grid-template-columns: 1fr; gap: 40px; }
+      #cta { padding: 80px 24px; }
+      footer { flex-direction: column; gap: 10px; text-align: center; padding: 32px 24px; }
+      .flip-header { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="index.html" class="nav-logo">LS <span>REALTY</span></a>
+  <ul class="nav-links">
+    <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="fix-flip.html" class="active">Fix &amp; Flip</a></li>
+    <li><a href="development.html">Development</a></li>
+    <li><a href="index.html#invest">Invest</a></li>
+    <li><a href="index.html#contact" class="nav-cta">Get In Touch</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Fix &amp; Flip · LS Realty</p>
+    <h1 class="hero-title">THE ART OF<br>THE <span class="gold">FLIP</span></h1>
+    <p class="hero-sub">Finding undervalued properties is just the start. The real edge is a bulletproof process — accurate budgets, vetted contractors, and a system built to protect your return.</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <a href="#process" class="btn btn-primary">Our Process</a>
+      <a href="index.html#contact" class="btn btn-gold">Partner With Me</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Before / After Photo Reveal ── -->
+<section id="flip-section" style="height: 400vh;">
+  <div id="flip-pin">
+
+    <div class="flip-header">
+      <div class="flip-label flip-label-after">AFTER</div>
+      <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3)">Scroll to renovate</div>
+      <div class="flip-label flip-label-before">BEFORE</div>
+    </div>
+
+    <div class="scene-wrap">
+
+      <!-- BEFORE — same photos, heavy degradation filter to simulate a neglected property -->
+      <!-- Swap these URLs with your own before-state photos -->
+      <div class="scene-layer scene-before">
+        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80'); background-position: center 40%"></div>
+        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=900&q=80')"></div>
+      </div>
+
+      <!-- AFTER — full-colour, vibrant renovation photos; clips left-to-right on scroll -->
+      <!-- Swap these URLs with your own after-state photos -->
+      <div class="scene-layer scene-after" id="scene-after">
+        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=80'); background-position: center 40%"></div>
+        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=80')"></div>
+      </div>
+
+      <!-- Visual overlays -->
+      <div class="scene-vignette"></div>
+      <div id="divider"></div>
+      <div class="scene-mid-line"></div>
+      <div class="half-label" style="left:25%">Exterior</div>
+      <div class="half-label" style="left:75%">Interior</div>
+
+      <!-- ── Improvement label pins ── -->
+      <!-- Exterior labels (left half) -->
+      <div class="imp-label" id="lbl-landscape" style="bottom:18%;left:8%">
+        <div class="imp-label-text">New Landscaping</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-siding" style="top:38%;left:18%">
+        <div class="imp-label-text">New Siding</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-windows-ext" style="top:28%;left:30%">
+        <div class="imp-label-text">New Windows</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-roof" style="top:10%;left:37%">
+        <div class="imp-label-text">New Roof</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-door" style="top:50%;left:43%">
+        <div class="imp-label-text">Statement Door</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <!-- Interior labels (right half) -->
+      <div class="imp-label" id="lbl-floors" style="bottom:14%;left:58%">
+        <div class="imp-label-text">New Flooring</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-walls" style="top:38%;left:62%">
+        <div class="imp-label-text">Fresh Paint</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-kitchen" style="top:44%;left:72%">
+        <div class="imp-label-text">Updated Kitchen</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-lighting" style="top:16%;left:80%">
+        <div class="imp-label-text">Modern Lighting</div>
+        <div class="imp-label-dot"></div>
+      </div>
+    </div>
+
+    <div class="flip-progress-wrap">
+      <div class="flip-progress-bar"><div class="flip-progress-fill" id="progress-fill"></div></div>
+      <div class="flip-progress-text" id="progress-text">Renovation 0% Complete</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Process Steps -->
+<section id="process">
+  <p class="section-label reveal">The Flip Process</p>
+  <h2 class="section-title reveal">HOW EVERY<br>DEAL IS RUN</h2>
+  <div class="process-steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <h3>Deal Analysis</h3>
+      <p>Every potential flip is underwritten before an offer is made. ARV, rehab scope, holding costs, and exit timing — all stress-tested before a single dollar is committed.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">02</div>
+      <h3>Acquisition</h3>
+      <p>Off-market sourcing, distressed sellers, estate sales — Lee's negotiation skills find the spread before competitors see the listing.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">03</div>
+      <h3>Scope &amp; Budget</h3>
+      <p>A detailed scope of work is finalized before closing. Every line item is priced, every sub-trade is vetted. No surprises during the rehab.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">04</div>
+      <h3>Project Management</h3>
+      <p>Daily oversight of contractors. Milestone-based payment schedules. Lee's system keeps crews moving and budgets intact from demo to punch list.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">05</div>
+      <h3>Staging &amp; List</h3>
+      <p>Strategic staging, professional photography, and precision pricing — the exit is planned from day one and executed to maximize sale price.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">06</div>
+      <h3>Close &amp; Distribute</h3>
+      <p>Clean title, fast closing. Proceeds distributed to investors with a full deal debrief — because the next deal starts where the last one finished.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Metrics -->
+<section id="metrics">
+  <div class="metrics-inner">
+    <div class="metrics-left reveal">
+      <p class="section-label">Track Record</p>
+      <h2>NUMBERS THAT<br>SPEAK FOR<br><span style="color:var(--gold)">THEMSELVES</span></h2>
+      <p>Every flip is a data point. Lee tracks every cost, every day on market, and every dollar returned — because precision today funds the next deal tomorrow.</p>
+      <a href="index.html#contact" class="btn btn-primary">Get Deal Details</a>
+    </div>
+    <div class="metrics-grid reveal">
+      <div class="metric-card">
+        <div class="metric-val" data-count="18" data-suffix="%">18%</div>
+        <div class="metric-label">Avg. ROI Per Deal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" data-count="90">90</div>
+        <div class="metric-label">Avg. Days to Close</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" data-count="0" data-prefix="$">$0</div>
+        <div class="metric-label">Deals Lost to Overruns</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" data-count="100" data-suffix="%">100%</div>
+        <div class="metric-label">On-Time Completion</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <p class="section-label reveal" style="text-align:center">Partner With Lee</p>
+  <h2 class="reveal">READY TO <span class="gold">FLIP</span><br>YOUR FIRST DEAL?</h2>
+  <p class="reveal">Lee is actively seeking capital partners for fix &amp; flip projects. Bring the capital — Lee brings the deal flow, the process, and the execution.</p>
+  <div class="cta-btns reveal">
+    <a href="index.html#contact" class="btn btn-primary">Schedule a Call</a>
+    <a href="index.html#contact" class="btn btn-gold">Request Deal Deck</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">LS <span>REALTY</span></div>
+  <p>© 2025 LS Realty · Lee Schoettle · All rights reserved</p>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
+
+// ── Scroll-driven before/after reveal ──
+const sceneAfter   = document.getElementById('scene-after');
+const divider      = document.getElementById('divider');
+const progressFill = document.getElementById('progress-fill');
+const progressText = document.getElementById('progress-text');
+
+const labelMap = [
+  { id: 'lbl-landscape',   threshold: 0.08 },
+  { id: 'lbl-siding',      threshold: 0.22 },
+  { id: 'lbl-windows-ext', threshold: 0.33 },
+  { id: 'lbl-roof',        threshold: 0.38 },
+  { id: 'lbl-door',        threshold: 0.44 },
+  { id: 'lbl-floors',      threshold: 0.58 },
+  { id: 'lbl-walls',       threshold: 0.65 },
+  { id: 'lbl-kitchen',     threshold: 0.75 },
+  { id: 'lbl-lighting',    threshold: 0.82 },
+];
+
+ScrollTrigger.create({
+  trigger: '#flip-section',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 0.5,
+  onUpdate(self) {
+    const p   = self.progress;
+    const pct = p * 100;
+    sceneAfter.style.clipPath  = `inset(0 ${100 - pct}% 0 0)`;
+    divider.style.left         = `${pct}%`;
+    progressFill.style.width   = `${pct}%`;
+    progressText.textContent   = `Renovation ${Math.round(pct)}% Complete`;
+    labelMap.forEach(({ id, threshold }) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('visible', p >= threshold);
+    });
+  }
+});
+
+// ── Stat counter animation ──
+document.querySelectorAll('[data-count]').forEach(el => {
+  const target = +el.dataset.count;
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const obj    = { val: 0 };
+  ScrollTrigger.create({
+    trigger: el, start: 'top 88%', once: true,
+    onEnter() {
+      gsap.to(obj, { val: target, duration: 1.8, ease: 'power2.out',
+        onUpdate() { el.textContent = prefix + Math.round(obj.val) + suffix; }
+      });
+    }
+  });
+});
+
+// ── Scroll reveals ──
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, { opacity: 1, y: 0, duration: 0.75, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 87%', toggleActions: 'play none none none' } });
+});
+</script>
+</body>
+</html>

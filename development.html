@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Development — LS Realty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #080d1a; --navy-mid: #0d1f3c;
+      --blue: #2d35d0; --blue-light: #4f58e8;
+      --gold: #c9a84c; --gold-light: #e8c96a;
+      --white: #ffffff; --muted: rgba(255,255,255,0.55);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--white); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 22px 48px; display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s, padding 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled { background: rgba(8,13,26,0.96); backdrop-filter: blur(16px); padding: 14px 48px; border-color: rgba(45,53,208,0.2); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.12em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 36px; list-style: none; align-items: center; }
+    .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+    .nav-cta { background: var(--blue) !important; color: var(--white) !important; padding: 8px 20px; border-radius: 4px; }
+
+    /* Hero */
+    #hero {
+      height: 80vh; min-height: 560px; display: flex; align-items: center;
+      background: radial-gradient(ellipse 70% 80% at 80% 50%, rgba(45,53,208,0.15) 0%, transparent 60%),
+                  linear-gradient(175deg, var(--navy) 0%, #080e22 100%);
+      padding: 0 60px; padding-top: 100px;
+    }
+    .hero-content { max-width: 800px; }
+    .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 8vw, 7rem); line-height: 0.92; letter-spacing: 0.025em; margin-bottom: 28px; }
+    .hero-title .gold { color: var(--gold); }
+    .hero-sub { font-size: clamp(1rem, 1.5vw, 1.1rem); font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.75; max-width: 520px; margin-bottom: 40px; }
+    .btn { display: inline-block; padding: 14px 32px; border-radius: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; transition: all 0.25s; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(45,53,208,0.45); }
+    .btn-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+    .btn-gold:hover { background: rgba(201,168,76,0.1); transform: translateY(-2px); }
+
+    /* ── Construction Photo Animation ── */
+    #dev-section { position: relative; }
+    #dev-pin {
+      position: sticky; top: 0; height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Stacked full-bleed phase photos */
+    .photos-wrap {
+      position: absolute;
+      inset: 0;
+    }
+    .phase-photo {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      will-change: opacity;
+    }
+    /* Cinematic dark overlay — tinted toward brand navy */
+    .photo-cinematic {
+      position: absolute; inset: 0; z-index: 2; pointer-events: none;
+      background:
+        linear-gradient(to right, rgba(8,13,26,0.65) 0%, rgba(8,13,26,0.15) 35%, rgba(8,13,26,0.15) 65%, rgba(8,13,26,0.65) 100%),
+        linear-gradient(to bottom, rgba(8,13,26,0.5) 0%, rgba(8,13,26,0.1) 30%, rgba(8,13,26,0.1) 65%, rgba(8,13,26,0.8) 100%);
+    }
+    /* Subtle blue colour cast to tie photos into brand palette */
+    .photo-tint {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      background: rgba(13, 31, 60, 0.25);
+      mix-blend-mode: multiply;
+    }
+
+    /* Phase HUD */
+    .dev-hud {
+      position: absolute; top: 100px; left: 60px; z-index: 10;
+      pointer-events: none;
+    }
+    .phase-counter {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 6rem; line-height: 1;
+      color: rgba(201,168,76,0.18);
+      margin-bottom: -12px;
+    }
+    .phase-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem; letter-spacing: 0.08em;
+      color: var(--white);
+      text-shadow: 0 2px 16px rgba(0,0,0,0.6);
+    }
+    .phase-desc {
+      font-size: 13px; color: rgba(255,255,255,0.7);
+      margin-top: 12px; max-width: 260px; line-height: 1.65;
+      letter-spacing: 0.02em;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+    }
+
+    /* Phase dot indicators */
+    .phase-dots {
+      position: absolute; right: 52px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 12px;
+      z-index: 10; pointer-events: none;
+    }
+    .phase-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .phase-dot.active { background: var(--gold); transform: scale(1.5); box-shadow: 0 0 8px rgba(201,168,76,0.7); }
+    .phase-dot.done   { background: var(--blue-light); }
+
+    /* Progress bar */
+    .dev-progress {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 3px; z-index: 10;
+      background: rgba(255,255,255,0.08);
+    }
+    .dev-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--gold));
+      width: 0%; transition: width 0.05s linear;
+    }
+
+    /* Gold callout label */
+    .callout {
+      position: absolute; z-index: 10;
+      opacity: 0; transform: translateX(-10px);
+      transition: opacity 0.5s, transform 0.5s;
+      pointer-events: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .callout.visible { opacity: 1; transform: translateX(0); }
+    .callout-line { width: 36px; height: 1px; background: var(--gold); }
+    .callout-text {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold); white-space: nowrap;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+    }
+
+    /* Content sections */
+    #phases-detail { padding: 120px 60px; max-width: 1200px; margin: 0 auto; }
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 5vw, 4rem); letter-spacing: 0.03em; line-height: 0.95; margin-bottom: 64px; }
+    .phases-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+    .phase-card { background: var(--navy-mid); border: 1px solid rgba(45,53,208,0.12); padding: 32px 24px; transition: border-color 0.3s; }
+    .phase-card:hover { border-color: var(--blue); }
+    .phase-card-num { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: rgba(45,53,208,0.2); line-height: 1; margin-bottom: 10px; }
+    .phase-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .phase-card p { font-size: 12px; line-height: 1.7; color: var(--muted); }
+
+    #invest-dev { background: var(--navy-mid); border-top: 1px solid rgba(45,53,208,0.15); padding: 100px 60px; }
+    .invest-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .invest-left h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 4vw, 3.5rem); line-height: 0.95; margin-bottom: 20px; }
+    .invest-left h2 .gold { color: var(--gold); }
+    .invest-left p { font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 32px; }
+    .invest-points { list-style: none; display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+    .invest-points li { display: flex; gap: 12px; align-items: flex-start; }
+    .invest-point-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-light); margin-top: 6px; flex-shrink: 0; }
+    .invest-points p { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0; }
+    .invest-metrics { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .inv-metric { background: rgba(45,53,208,0.08); border: 1px solid rgba(45,53,208,0.2); border-radius: 6px; padding: 24px; }
+    .inv-metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+    .inv-metric-label { font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+    #cta { padding: 140px 60px; text-align: center; position: relative; overflow: hidden; }
+    #cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 100% at 50% 50%, rgba(45,53,208,0.1) 0%, transparent 65%); pointer-events: none; }
+    #cta h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 5rem); letter-spacing: 0.03em; line-height: 0.95; max-width: 700px; margin: 0 auto 20px; }
+    #cta h2 .gold { color: var(--gold); }
+    #cta p { font-size: 15px; color: var(--muted); max-width: 500px; margin: 0 auto 48px; line-height: 1.8; }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    footer { background: #040710; padding: 40px 60px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.12em; color: rgba(255,255,255,0.35); }
+    .footer-logo span { color: rgba(201,168,76,0.5); }
+    footer p { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    .reveal { opacity: 0; transform: translateY(28px); }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; } nav.scrolled { padding: 12px 24px; }
+      .nav-links { display: none; }
+      #hero { padding: 0 24px; padding-top: 90px; }
+      .dev-hud { left: 20px; top: 80px; }
+      #phases-detail { padding: 80px 24px; }
+      .phases-grid { grid-template-columns: repeat(2,1fr); }
+      #invest-dev { padding: 60px 24px; }
+      .invest-inner { grid-template-columns: 1fr; gap: 40px; }
+      #cta { padding: 80px 24px; }
+      footer { flex-direction: column; gap: 10px; text-align: center; padding: 32px 24px; }
+      .phase-dots { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="index.html" class="nav-logo">LS <span>REALTY</span></a>
+  <ul class="nav-links">
+    <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="development.html" class="active">Development</a></li>
+    <li><a href="index.html#invest">Invest</a></li>
+    <li><a href="index.html#contact" class="nav-cta">Get In Touch</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Ground-Up Development · LS Realty</p>
+    <h1 class="hero-title">BUILT FROM<br>THE <span class="gold">GROUND UP</span></h1>
+    <p class="hero-sub">From raw land to finished home — Lee manages every phase of ground-up construction with the systems, people, and process that deliver on time and on budget.</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <a href="#phases-detail" class="btn btn-primary">See The Process</a>
+      <a href="index.html#contact" class="btn btn-gold">Partner With Me</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Construction Photo Animation ── -->
+<section id="dev-section" style="height: 500vh;">
+  <div id="dev-pin">
+
+    <!-- Stacked phase photos — opacity driven by scroll -->
+    <!-- Replace each URL with your own construction site photography -->
+    <div class="photos-wrap" id="photos-wrap">
+      <!-- Phase 01 — Raw Land (empty lot / open field) -->
+      <div class="phase-photo" id="ph-0" style="background-image:url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80'); background-position: center 60%"></div>
+      <!-- Phase 02 — Site Survey -->
+      <div class="phase-photo" id="ph-1" style="background-image:url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1600&q=80')"></div>
+      <!-- Phase 03 — Excavation -->
+      <div class="phase-photo" id="ph-2" style="background-image:url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1600&q=80'); background-position: center 70%"></div>
+      <!-- Phase 04 — Foundation / Concrete Slab -->
+      <div class="phase-photo" id="ph-3" style="background-image:url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1600&q=80'); background-position: center 40%"></div>
+      <!-- Phase 05 — First Floor Framing -->
+      <div class="phase-photo" id="ph-4" style="background-image:url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80')"></div>
+      <!-- Phase 06 — Roof Framing -->
+      <div class="phase-photo" id="ph-5" style="background-image:url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80'); background-position: center 30%"></div>
+      <!-- Phase 07 — Sheathing & Wrap -->
+      <div class="phase-photo" id="ph-6" style="background-image:url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80'); background-position: center 60%"></div>
+      <!-- Phase 08 — Windows & Doors -->
+      <div class="phase-photo" id="ph-7" style="background-image:url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1600&q=80')"></div>
+      <!-- Phase 09 — Exterior Finish -->
+      <div class="phase-photo" id="ph-8" style="background-image:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80')"></div>
+      <!-- Phase 10 — Complete with Landscaping -->
+      <div class="phase-photo" id="ph-9" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80')"></div>
+    </div>
+
+    <!-- Cinematic overlays -->
+    <div class="photo-cinematic"></div>
+    <div class="photo-tint"></div>
+
+    <!-- Phase HUD (top-left) -->
+    <div class="dev-hud">
+      <div class="phase-counter" id="phase-counter">01</div>
+      <div class="phase-name"    id="phase-name">Raw Land</div>
+      <div class="phase-desc"    id="phase-desc">The project starts here — identifying the right lot with the right zoning, utilities access, and market demand.</div>
+    </div>
+
+    <!-- Phase dot navigation (right edge) -->
+    <div class="phase-dots" id="phase-dots"></div>
+
+    <!-- Gold callout labels -->
+    <div class="callout" id="c-0" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Site Selected</div></div>
+    <div class="callout" id="c-1" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Survey Stakes Set</div></div>
+    <div class="callout" id="c-2" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Excavation Underway</div></div>
+    <div class="callout" id="c-3" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Foundation Poured</div></div>
+    <div class="callout" id="c-4" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">1st Floor Framing</div></div>
+    <div class="callout" id="c-5" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Roof Trusses Set</div></div>
+    <div class="callout" id="c-6" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Building Wrapped</div></div>
+    <div class="callout" id="c-7" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Windows &amp; Doors In</div></div>
+    <div class="callout" id="c-8" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Exterior Complete</div></div>
+    <div class="callout" id="c-9" style="bottom:38%;right:10%"><div class="callout-line"></div><div class="callout-text">Certificate of Occupancy</div></div>
+
+    <!-- Progress bar -->
+    <div class="dev-progress"><div class="dev-progress-fill" id="dev-prog-fill"></div></div>
+  </div>
+</section>
+
+<!-- Phases detail -->
+<section id="phases-detail">
+  <p class="section-label reveal">The Development Process</p>
+  <h2 class="section-title reveal">EIGHT PHASES.<br>ZERO SURPRISES.</h2>
+  <div class="phases-grid">
+    <div class="phase-card reveal"><div class="phase-card-num">01</div><h3>Site Selection</h3><p>Zoning analysis, utility access, topography, and market demand — every lot is underwritten before a purchase offer is made.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">02</div><h3>Design &amp; Entitlement</h3><p>Architectural plans, engineering, permits — Lee manages the entitlement process to minimize delays and maximize buildable area.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">03</div><h3>Site Work &amp; Foundation</h3><p>Excavation, utilities, foundation pour. The first dollars spent set the quality standard for everything that follows.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">04</div><h3>Framing</h3><p>Structural framing with daily oversight. Deviations from plan are caught and corrected before they become expensive change orders.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">05</div><h3>MEP Rough-In</h3><p>Mechanical, electrical, and plumbing rough-in coordinated by a single point of contact — Lee — to eliminate sub-trade conflicts.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">06</div><h3>Insulation &amp; Drywall</h3><p>Inspection-approved insulation, then drywall. Milestone payments enforce quality before the next phase begins.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">07</div><h3>Finish Work</h3><p>Flooring, cabinetry, trim, fixtures — the details that define market position and justify the price point on exit.</p></div>
+    <div class="phase-card reveal"><div class="phase-card-num">08</div><h3>Certificate of Occupancy</h3><p>Final inspections, punch list, CO — then a clean title and executed exit strategy, with returns distributed to partners.</p></div>
+  </div>
+</section>
+
+<!-- Investment -->
+<section id="invest-dev">
+  <div class="invest-inner">
+    <div class="invest-left reveal">
+      <p class="section-label">For Capital Partners</p>
+      <h2>YOUR CAPITAL.<br>OUR <span class="gold">PROCESS.</span></h2>
+      <p>Ground-up development projects offer some of the highest risk-adjusted returns in real estate — when managed by someone who's built the systems to execute. Lee is that operator.</p>
+      <ul class="invest-points">
+        <li><div class="invest-point-dot"></div><p><strong>Preferred returns</strong> for equity partners on all projects</p></li>
+        <li><div class="invest-point-dot"></div><p><strong>Monthly reporting</strong> with full construction draw transparency</p></li>
+        <li><div class="invest-point-dot"></div><p><strong>Fixed-price contracts</strong> wherever possible to protect your downside</p></li>
+        <li><div class="invest-point-dot"></div><p><strong>Clear exit strategy</strong> — presale, market listing, or hold for rental — defined at inception</p></li>
+      </ul>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <a href="index.html#contact" class="btn btn-primary">Schedule a Call</a>
+        <a href="index.html#contact" class="btn btn-gold">Request Deal Deck</a>
+      </div>
+    </div>
+    <div class="invest-metrics reveal">
+      <div class="inv-metric"><div class="inv-metric-val" data-count="24" data-suffix="%">24%</div><div class="inv-metric-label">Target IRR</div></div>
+      <div class="inv-metric"><div class="inv-metric-val" data-count="18" data-suffix="mo">18mo</div><div class="inv-metric-label">Avg. Project Length</div></div>
+      <div class="inv-metric"><div class="inv-metric-val" data-count="8" data-suffix="%">8%</div><div class="inv-metric-label">Preferred Return</div></div>
+      <div class="inv-metric"><div class="inv-metric-val" data-count="0" data-prefix="$">$0</div><div class="inv-metric-label">Surprise Cost Overruns</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <p class="section-label reveal" style="text-align:center">Build With Lee</p>
+  <h2 class="reveal">READY TO BUILD<br>SOMETHING <span class="gold">GREAT?</span></h2>
+  <p class="reveal">Lee is actively seeking capital partners for ground-up development projects. Serious inquiry only — bring your capital requirements, Lee will bring the deal.</p>
+  <div class="cta-btns reveal">
+    <a href="index.html#contact" class="btn btn-primary">Start the Conversation</a>
+    <a href="index.html#contact" class="btn btn-gold">Request Deal Deck</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">LS <span>REALTY</span></div>
+  <p>© 2025 LS Realty · Lee Schoettle · All rights reserved</p>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
+
+// ── Phase data ──
+const phases = [
+  { id:'ph-0', callout:'c-0', counter:'01', name:'Raw Land',        desc:'The project starts here — identifying the right lot with the right zoning, utilities access, and market demand.' },
+  { id:'ph-1', callout:'c-1', counter:'02', name:'Site Survey',     desc:'Survey stakes mark the building footprint. Layout strings define the structure before a shovel hits the ground.' },
+  { id:'ph-2', callout:'c-2', counter:'03', name:'Excavation',      desc:'Site is cleared and excavated to the design depth. Soil conditions confirmed before foundation work begins.' },
+  { id:'ph-3', callout:'c-3', counter:'04', name:'Foundation',      desc:'Concrete foundation walls poured and cured. Slab on grade with control joints and reinforcement follows.' },
+  { id:'ph-4', callout:'c-4', counter:'05', name:'Wall Framing',    desc:'First floor walls framed with precision-cut lumber, plumb and square. All openings header-sized to code.' },
+  { id:'ph-5', callout:'c-5', counter:'06', name:'Roof Framing',    desc:'Second floor and roof trusses set. The structural skeleton of the home takes its final shape.' },
+  { id:'ph-6', callout:'c-6', counter:'07', name:'Sheathing',       desc:'OSB sheathing applied to walls and roof deck. The building envelope is closed — weather-tight ahead of MEP.' },
+  { id:'ph-7', callout:'c-7', counter:'08', name:'Windows & Doors', desc:'Rough openings receive windows and exterior doors. Energy performance and security locked in.' },
+  { id:'ph-8', callout:'c-8', counter:'09', name:'Exterior Finish', desc:'Siding, roofing, gutters, trim, and paint applied. Curb appeal and weatherproofing delivered together.' },
+  { id:'ph-9', callout:'c-9', counter:'10', name:'Complete',        desc:'Landscaping, walkways, and driveway finished. Certificate of Occupancy obtained. Returns distributed to partners.' },
+];
+
+// Build phase dots
+const dotsEl = document.getElementById('phase-dots');
+phases.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'phase-dot';
+  d.id = `dot-${i}`;
+  dotsEl.appendChild(d);
+});
+
+const counterEl = document.getElementById('phase-counter');
+const nameEl    = document.getElementById('phase-name');
+const descEl    = document.getElementById('phase-desc');
+const progFill  = document.getElementById('dev-prog-fill');
+let currentPhase = -1;
+
+function setPhase(idx) {
+  if (idx === currentPhase) return;
+  currentPhase = idx;
+  if (idx < 0 || idx >= phases.length) return;
+  const ph = phases[idx];
+  counterEl.textContent = ph.counter;
+  nameEl.textContent    = ph.name;
+  descEl.textContent    = ph.desc;
+  // Dots
+  phases.forEach((_, i) => {
+    const d = document.getElementById(`dot-${i}`);
+    if (!d) return;
+    d.className = i < idx ? 'phase-dot done' : i === idx ? 'phase-dot active' : 'phase-dot';
+  });
+  // Callouts — show only current
+  phases.forEach(p => { const c = document.getElementById(p.callout); if (c) c.classList.remove('visible'); });
+  const curr = document.getElementById(ph.callout);
+  if (curr) curr.classList.add('visible');
+}
+
+// Show first photo immediately
+const firstPhoto = document.getElementById('ph-0');
+if (firstPhoto) firstPhoto.style.opacity = '1';
+setPhase(0);
+
+ScrollTrigger.create({
+  trigger: '#dev-section',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 0.8,
+  onUpdate(self) {
+    const p   = self.progress;
+    const n   = phases.length;
+    const idx = Math.min(Math.floor(p * n), n - 1);
+    progFill.style.width = `${p * 100}%`;
+
+    // Smooth crossfade between phase photos
+    const fadeRange = 0.04; // 4% of total scroll = crossfade window
+    phases.forEach((ph, i) => {
+      const el = document.getElementById(ph.id);
+      if (!el) return;
+      const start = i / n;
+      const end   = (i + 1) / n;
+
+      let opacity;
+      if (p < start - fadeRange) {
+        opacity = 0;
+      } else if (p < start) {
+        opacity = (p - (start - fadeRange)) / fadeRange;
+      } else if (p < end - fadeRange || i === n - 1) {
+        opacity = 1;
+      } else if (p < end) {
+        opacity = 1 - (p - (end - fadeRange)) / fadeRange;
+      } else {
+        opacity = 0;
+      }
+      el.style.opacity = opacity;
+    });
+
+    setPhase(idx);
+  }
+});
+
+// ── Stat counter animation ──
+document.querySelectorAll('[data-count]').forEach(el => {
+  const target = +el.dataset.count;
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const obj    = { val: 0 };
+  ScrollTrigger.create({
+    trigger: el, start: 'top 88%', once: true,
+    onEnter() {
+      gsap.to(obj, { val: target, duration: 1.8, ease: 'power2.out',
+        onUpdate() { el.textContent = prefix + Math.round(obj.val) + suffix; }
+      });
+    }
+  });
+});
+
+// ── Scroll reveals ──
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, { opacity: 1, y: 0, duration: 0.75, ease: 'power3.out',
+    scrollTrigger: { trigger: el, start: 'top 87%', toggleActions: 'play none none none' } });
+});
+</script>
+</body>
+</html>
