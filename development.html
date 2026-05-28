@@ -68,9 +68,9 @@
       position: absolute;
       inset: 0;
       background-size: cover;
-      background-position: center;
-      opacity: 0;
-      will-change: opacity;
+      background-position: center bottom;
+      /* clip-path controls the build-up reveal — JS sets initial state */
+      will-change: clip-path;
     }
     /* Cinematic dark overlay — tinted toward brand navy */
     .photo-cinematic {
@@ -232,7 +232,7 @@
 </section>
 
 <!-- ── Construction Photo Animation ── -->
-<section id="dev-section" style="height: 350vh;">
+<section id="dev-section" style="height: 400vh;">
   <div id="dev-pin">
 
     <!-- 5 phase photos — swap URLs with your own project photography -->
@@ -381,45 +381,49 @@ function setPhase(idx) {
   if (curr) curr.classList.add('visible');
 }
 
-// Show first photo immediately
-const firstPhoto = document.getElementById('ph-0');
-if (firstPhoto) firstPhoto.style.opacity = '1';
+// Phase 0 (land) always fully visible; phases 1-4 start hidden below the frame
+document.getElementById('ph-0').style.clipPath = 'none';
+for (let i = 1; i < phases.length; i++) {
+  const el = document.getElementById(`ph-${i}`);
+  if (el) el.style.clipPath = 'inset(0 0 100% 0)';
+}
 setPhase(0);
 
 ScrollTrigger.create({
   trigger: '#dev-section',
   start: 'top top',
   end: 'bottom bottom',
-  scrub: 0.8,
+  scrub: 0.4,           // tighter scrub = more direct response to scroll
   onUpdate(self) {
-    const p   = self.progress;
-    const n   = phases.length;
-    const idx = Math.min(Math.floor(p * n), n - 1);
+    const p = self.progress;
+    const n = phases.length;         // 5
+    const builds = n - 1;            // 4 build transitions (land is already there)
     progFill.style.width = `${p * 100}%`;
 
-    // Smooth crossfade between phase photos
-    const fadeRange = 0.04; // 4% of total scroll = crossfade window
+    // Each phase (1-4) rises up from the ground over its 25% of total scroll
+    // clip-path inset(0 0 X% 0) — X=100 fully hidden, X=0 fully revealed
     phases.forEach((ph, i) => {
+      if (i === 0) return; // land stays untouched
       const el = document.getElementById(ph.id);
       if (!el) return;
-      const start = i / n;
-      const end   = (i + 1) / n;
 
-      let opacity;
-      if (p < start - fadeRange) {
-        opacity = 0;
-      } else if (p < start) {
-        opacity = (p - (start - fadeRange)) / fadeRange;
-      } else if (p < end - fadeRange || i === n - 1) {
-        opacity = 1;
-      } else if (p < end) {
-        opacity = 1 - (p - (end - fadeRange)) / fadeRange;
+      const buildStart = (i - 1) / builds;   // when this phase starts rising
+      const buildEnd   = i / builds;          // when it's fully revealed
+
+      let clip;
+      if (p <= buildStart) {
+        clip = 100;                           // not started — hidden below
+      } else if (p >= buildEnd) {
+        clip = 0;                             // finished — fully up
       } else {
-        opacity = 0;
+        const progress = (p - buildStart) / (buildEnd - buildStart);
+        clip = (1 - progress) * 100;          // rising from bottom
       }
-      el.style.opacity = opacity;
+      el.style.clipPath = `inset(0 0 ${clip.toFixed(2)}% 0)`;
     });
 
+    // HUD shows whichever phase is actively building
+    const idx = Math.min(Math.floor(p * n), n - 1);
     setPhase(idx);
   }
 });
