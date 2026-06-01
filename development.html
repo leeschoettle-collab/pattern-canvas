@@ -537,21 +537,13 @@ const SC = FDN_H + WL_H/2;   // stud center y
   B(0.16,WL_H,0.16, M.wood,-5.0, SC, z, G2);
   B(0.16,WL_H,0.16, M.wood, 5.0, SC, z, G2);
 });
-// Top plates
-B(10.8,0.16,0.16, M.wood,  0,  PLATE_Y, 4.0, G2);
-B(10.8,0.16,0.16, M.wood,  0,  PLATE_Y,-4.0, G2);
-B(0.16,0.16,8.4,  M.wood,  5.0,PLATE_Y, 0,   G2);
-B(0.16,0.16,8.4,  M.wood, -5.0,PLATE_Y, 0,   G2);
-// Ridge beam
-B(11.2,0.24,0.24, M.wood, 0, PLATE_Y+RF_RISE, 0, G2);
-// Rafters
-[-3.6,-1.8,0,1.8,3.6].forEach(z=>{
-  const rL = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN-0.4,0.14,0.14), M.wood);
-  rL.rotation.z = RAF_ANG; rL.position.set(-RF_RUN/2, PLATE_Y+RF_RISE/2, z);
-  G2.add(rL);
-  const rR = rL.clone(); rR.rotation.z = -RAF_ANG;
-  rR.position.set(RF_RUN/2, PLATE_Y+RF_RISE/2, z); G2.add(rR);
-});
+// Top plates — kept within gable width (x: ±5.2) so nothing pokes through
+B(10.2,0.16,0.16, M.wood,  0,  PLATE_Y, 4.0, G2);
+B(10.2,0.16,0.16, M.wood,  0,  PLATE_Y,-4.0, G2);
+B(0.16,0.16,8.2,  M.wood,  5.0,PLATE_Y, 0,   G2);
+B(0.16,0.16,8.2,  M.wood, -5.0,PLATE_Y, 0,   G2);
+// Ridge beam — runs along Z (depth axis), stays inside roof envelope
+B(0.20,0.20,9.0, M.wood, 0, PLATE_Y+RF_RISE-0.16, 0, G2);
 
 // ── G3: EXTERIOR ─────────────────────────────────────────────
 const G3 = new THREE.Group(); G3.position.y = -22; scene.add(G3);
@@ -566,16 +558,30 @@ B(3.0,1.0, 0.22, M.siding, 0, FDN_H+WL_H-0.5, 4.2, G3);   // above door
 B(10.8,WL_H,0.22, M.siding,  0,  FDN_H+WL_H/2, -4.2, G3);
 B(0.22,WL_H,8.8,  M.siding,  5.2,FDN_H+WL_H/2,  0,   G3);
 B(0.22,WL_H,8.8,  M.siding, -5.2,FDN_H+WL_H/2,  0,   G3);
-// Gable-end fill (stacked boxes approximating triangle) on x = ±5.2
+// Ceiling — closes attic from high camera angles (fits inside walls)
+B(10.0, 0.12, 8.6, M.trim, 0, PLATE_Y-0.06, 0, G3);
+// Overhang soffits — close the horizontal gap between wall top and eave
+B(10.4, 0.08, 0.65, M.trim, 0, PLATE_Y, 4.40, G3);
+B(10.4, 0.08, 0.65, M.trim, 0, PLATE_Y, -4.40, G3);
+// Gable ends — clean triangular BufferGeometry (no stair-stepping)
 (function(){
-  const n = 5, ht = RF_RISE/n;
-  for(let g=0; g<n; g++){
-    const cy  = PLATE_Y + ht*(g+0.5);
-    const frac = (cy - PLATE_Y) / RF_RISE;
-    const wd  = Math.max(0.4, 8.2*(1-frac) + 0.15);
-    B(0.22, ht, wd, M.siding,  5.2, cy, 0, G3);
-    B(0.22, ht, wd, M.siding, -5.2, cy, 0, G3);
+  const PY=PLATE_Y, RY=PLATE_Y+RF_RISE, zd=4.72;
+  const gabMat = new THREE.MeshStandardMaterial({map:T_siding, roughness:0.88, metalness:0, side:THREE.DoubleSide});
+  function makeGable(xPos, flip) {
+    const geo = new THREE.BufferGeometry();
+    const x = xPos;
+    const verts = flip
+      ? new Float32Array([x,PY,+zd, x,PY,-zd, x,RY,0])
+      : new Float32Array([x,PY,-zd, x,PY,+zd, x,RY,0]);
+    geo.setAttribute('position', new THREE.BufferAttribute(verts,3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0,0,1,0,0.5,1]),2));
+    geo.computeVertexNormals();
+    return geo;
   }
+  const lg = new THREE.Mesh(makeGable(-5.2, false), gabMat);
+  lg.castShadow = lg.receiveShadow = true; G3.add(lg);
+  const rg = new THREE.Mesh(makeGable( 5.2, true),  gabMat);
+  rg.castShadow = rg.receiveShadow = true; G3.add(rg);
 })();
 // Front windows — glass + white frame + mullion
 (function(){
@@ -590,12 +596,32 @@ B(0.22,WL_H,8.8,  M.siding, -5.2,FDN_H+WL_H/2,  0,   G3);
     B(ff*0.7, fh, th*2,    M.winFrame, cx, cy, z, G3);
   });
 })();
-// Back windows
-B(1.6,1.2,0.08, M.glass,-3.5, FDN_H+1.8,-4.26, G3);
-B(1.6,1.2,0.08, M.glass, 3.5, FDN_H+1.8,-4.26, G3);
-// Right-side windows
-B(0.08,1.2,1.4, M.glass, 5.26, FDN_H+1.8,-1.5, G3);
-B(0.08,1.2,1.4, M.glass, 5.26, FDN_H+1.8, 1.5, G3);
+// Back windows — glass + frame + sill
+(function(){
+  const fh=1.2, fw=1.6, ff=0.10, th=0.08, z=-4.26;
+  [-3.5, 3.5].forEach(cx=>{
+    const cy=FDN_H+1.8;
+    B(fw,fh,th,        M.glass,    cx,cy,z, G3);
+    B(fw+ff*2,ff,th*2, M.winFrame, cx,cy+fh/2+ff/2,z, G3);
+    B(fw+ff*2,ff,th*2, M.winFrame, cx,cy-fh/2-ff/2,z, G3);
+    B(ff,fh+ff*2,th*2, M.winFrame, cx-fw/2-ff/2,cy,z, G3);
+    B(ff,fh+ff*2,th*2, M.winFrame, cx+fw/2+ff/2,cy,z, G3);
+    B(fw+ff*2+0.1,0.10,0.22, M.trim, cx, cy-fh/2-ff-0.05, z-0.08, G3); // sill
+  });
+})();
+// Right-side windows — glass + frame + sill
+(function(){
+  const fh=1.2, fw=1.4, ff=0.10, th=0.08, x=5.26;
+  [-1.5, 1.5].forEach(cz=>{
+    const cy=FDN_H+1.8;
+    B(th,fh,fw,        M.glass,    x,cy,cz, G3);
+    B(th*2,ff,fw+ff*2, M.winFrame, x,cy+fh/2+ff/2,cz, G3);
+    B(th*2,ff,fw+ff*2, M.winFrame, x,cy-fh/2-ff/2,cz, G3);
+    B(th*2,fh+ff*2,ff, M.winFrame, x,cy,cz-fw/2-ff/2, G3);
+    B(th*2,fh+ff*2,ff, M.winFrame, x,cy,cz+fw/2+ff/2, G3);
+    B(0.22,0.10,fw+ff*2+0.1, M.trim, x+0.08, cy-fh/2-ff-0.05, cz, G3); // sill
+  });
+})();
 // Door body
 B(1.5,2.5,0.10, M.door, 0, FDN_H+1.25, 4.25, G3);
 // Door raised panels
@@ -607,20 +633,32 @@ B(0.10,0.10,0.10, new THREE.MeshStandardMaterial({color:0xd4a83c, roughness:0.12
 // Corner trim boards
 [[-5.0,4.2],[5.0,4.2],[-5.0,-4.2],[5.0,-4.2]].forEach(([x,z])=>
   B(0.28, WL_H, 0.28, M.trim, x, FDN_H+WL_H/2, z, G3));
-// Fascia boards at eave line
-B(11.0,0.30,0.22, M.trim, 0, PLATE_Y+0.15,  4.62, G3);
-B(11.0,0.30,0.22, M.trim, 0, PLATE_Y+0.15, -4.62, G3);
-// Roof slopes (two rotated panels)
-const ls = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.4), M.roof);
-ls.rotation.z = RAF_ANG;
-ls.position.set(-RF_RUN/2, PLATE_Y+RF_RISE/2, 0);
-ls.castShadow = true; G3.add(ls);
-const rs = new THREE.Mesh(new THREE.BoxGeometry(RAF_LEN,0.22,9.4), M.roof);
-rs.rotation.z = -RAF_ANG;
-rs.position.set(RF_RUN/2, PLATE_Y+RF_RISE/2, 0);
-rs.castShadow = true; G3.add(rs);
-// Ridge cap
-B(11.6,0.30,0.55, M.roof, 0, PLATE_Y+RF_RISE+0.15, 0, G3);
+// Fascia boards — match gable width
+B(10.4,0.30,0.22, M.trim, 0, PLATE_Y+0.15,  4.62, G3);
+B(10.4,0.30,0.22, M.trim, 0, PLATE_Y+0.15, -4.62, G3);
+// Roof slopes — flat BufferGeometry quads (no seam / no cross artifact)
+(function(){
+  const PY=PLATE_Y, RY=PLATE_Y+RF_RISE, zf=4.72, zb=-4.72;
+  function makeSlope(x1,x2,flip) {
+    const geo = new THREE.BufferGeometry();
+    const p = !flip
+      ? [x1,PY,zf, x2,RY,zb, x1,PY,zb,  x1,PY,zf, x2,RY,zf, x2,RY,zb]
+      : [x1,PY,zb, x2,RY,zf, x1,PY,zf,  x1,PY,zb, x2,RY,zb, x2,RY,zf];
+    const u = !flip
+      ? [0,0, 1,1, 1,0,  0,0, 0,1, 1,1]
+      : [1,0, 0,1, 0,0,  1,0, 1,1, 0,1];
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(p),3));
+    geo.setAttribute('uv',       new THREE.BufferAttribute(new Float32Array(u),2));
+    geo.computeVertexNormals();
+    return geo;
+  }
+  const lsM = new THREE.Mesh(makeSlope(-5.2, 0, false), M.roof);
+  lsM.castShadow = lsM.receiveShadow = true; G3.add(lsM);
+  const rsM = new THREE.Mesh(makeSlope( 5.2, 0, true),  M.roof);
+  rsM.castShadow = rsM.receiveShadow = true; G3.add(rsM);
+  // Thin ridge cap flush with ridgeline
+  B(0.22, 0.14, 9.6, M.roof, 0, RY-0.07, 0, G3);
+})();
 // Chimney + cap flashing
 B(0.95,3.0,0.95, M.concrete, 3.5, PLATE_Y+RF_RISE-0.5, -1.5, G3);
 B(1.15,0.14,1.15, new THREE.MeshStandardMaterial({color:0x707060, roughness:0.88, metalness:0}), 3.5, PLATE_Y+RF_RISE+2.57, -1.5, G3);
