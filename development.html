@@ -362,8 +362,8 @@ scene.background = new THREE.Color(0x0b1525);
 scene.fog = new THREE.FogExp2(0x0b1525, 0.018);
 
 const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(20, 15, 22);
-camera.lookAt(0, 3, 0);
+camera.position.set(3, 9, 30);
+camera.lookAt(3, 4, 0);
 
 // ── Lights ──────────────────────────────────────────────────
 // Sky/ground hemisphere — warm overcast sky + reflected ground
@@ -371,13 +371,13 @@ const hemi = new THREE.HemisphereLight(0x8ab4d8, 0x8a7850, 0.7);
 scene.add(hemi);
 // Main sun — warm golden-hour directional
 const sun = new THREE.DirectionalLight(0xfff0cc, 3.0);
-sun.position.set(16, 28, 14);
+sun.position.set(8, 28, 20);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
 sun.shadow.bias = -0.0008;
-sun.shadow.camera.left = -24; sun.shadow.camera.right = 24;
+sun.shadow.camera.left = -28; sun.shadow.camera.right = 32;
 sun.shadow.camera.top  =  24; sun.shadow.camera.bottom= -24;
-sun.shadow.camera.near = 1;   sun.shadow.camera.far   = 110;
+sun.shadow.camera.near = 1;   sun.shadow.camera.far   = 120;
 scene.add(sun);
 // Cool bounce fill from opposite side
 const fill = new THREE.DirectionalLight(0x6688bb, 0.55);
@@ -507,11 +507,18 @@ const RF_RUN  = 5.0;
 const PLATE_Y = FDN_H + WL_H;
 const RAF_ANG = Math.atan2(RF_RISE, RF_RUN);
 const RAF_LEN = Math.sqrt(RF_RISE*RF_RISE + RF_RUN*RF_RUN) + 0.5;
+// Garage geometry constants
+const GAR_W      = 6.0;
+const GAR_X      = 5.2 + GAR_W / 2;   // = 8.2 (garage center x)
+const GAR_WL_H   = 2.4;
+const GAR_PL_Y   = FDN_H + GAR_WL_H;  // = 3.3
+const GAR_RF_RISE = 1.0;
+const GAR_RX     = GAR_X;             // ridge x (centre of garage)
 
 // ── G0: LAND ─────────────────────────────────────────────────
 const G0 = new THREE.Group(); scene.add(G0);
 B(80, 0.3, 80, M.ground, 0, -0.15, 0, G0);
-B(13, 0.12, 10, M.dirt,  0,  0.06, 0, G0);   // raw-dirt building footprint
+B(20, 0.12, 10, M.dirt,  3,  0.06, 0, G0);   // raw-dirt footprint (house + garage)
 
 // ── G1: FOUNDATION ───────────────────────────────────────────
 const G1 = new THREE.Group(); G1.position.y = -22; scene.add(G1);
@@ -519,7 +526,12 @@ B(10.8, FDN_H, 0.4, M.concrete,  0,   FDN_H/2,  4.3, G1);   // front stem
 B(10.8, FDN_H, 0.4, M.concrete,  0,   FDN_H/2, -4.3, G1);   // back stem
 B(0.4,  FDN_H, 8.2, M.concrete,  5.2, FDN_H/2,  0,   G1);   // right stem
 B(0.4,  FDN_H, 8.2, M.concrete, -5.2, FDN_H/2,  0,   G1);   // left stem
-B(10.4, 0.20,  8.0, M.concrete,  0,   0.10,      0,   G1);   // slab
+B(10.4, 0.20,  8.0, M.concrete,  0,   0.10,      0,   G1);   // main slab
+// Garage foundation (right of main house)
+B(GAR_W+0.4, FDN_H, 0.4, M.concrete, GAR_X, FDN_H/2,  4.3, G1);
+B(GAR_W+0.4, FDN_H, 0.4, M.concrete, GAR_X, FDN_H/2, -4.3, G1);
+B(0.4, FDN_H, 8.2, M.concrete, 5.2+GAR_W, FDN_H/2, 0, G1);
+B(GAR_W, 0.20, 8.0, M.concrete, GAR_X, 0.10, 0, G1);
 
 // ── G2: FRAMING ──────────────────────────────────────────────
 const G2 = new THREE.Group(); G2.position.y = -22; scene.add(G2);
@@ -538,12 +550,23 @@ const SC = FDN_H + WL_H/2;   // stud center y
   B(0.16,WL_H,0.16, M.wood, 5.0, SC, z, G2);
 });
 // Top plates — kept within gable width (x: ±5.2) so nothing pokes through
-B(10.2,0.16,0.16, M.wood,  0,  PLATE_Y, 4.0, G2);
-B(10.2,0.16,0.16, M.wood,  0,  PLATE_Y,-4.0, G2);
+B(9.8,0.16,0.16, M.wood,  0,  PLATE_Y, 4.0, G2);
+B(9.8,0.16,0.16, M.wood,  0,  PLATE_Y,-4.0, G2);
 B(0.16,0.16,8.2,  M.wood,  5.0,PLATE_Y, 0,   G2);
 B(0.16,0.16,8.2,  M.wood, -5.0,PLATE_Y, 0,   G2);
 // Ridge beam — runs along Z (depth axis), stays inside roof envelope
 B(0.20,0.20,9.0, M.wood, 0, PLATE_Y+RF_RISE-0.16, 0, G2);
+// ─── Garage framing ───
+const GSC = FDN_H + GAR_WL_H/2;   // garage stud centre y
+[[5.2+GAR_W,4.0],[5.2+GAR_W,-4.0]].forEach(([x,z])=>
+  B(0.22,GAR_WL_H,0.22, M.wood, x, GSC, z, G2));
+[6.5,7.1,9.3,9.9].forEach(x=> B(0.16,GAR_WL_H,0.16, M.wood, x, GSC, 4.0, G2));
+[6.5,8.2,9.9].forEach(x=>     B(0.16,GAR_WL_H,0.16, M.wood, x, GSC,-4.0, G2));
+[-2.6,-0.9,0.9,2.6].forEach(z=> B(0.16,GAR_WL_H,0.16, M.wood, 5.2+GAR_W, GSC, z, G2));
+B(GAR_W-0.5,0.16,0.16, M.wood, GAR_X+0.25, GAR_PL_Y, 4.0, G2);
+B(GAR_W-0.5,0.16,0.16, M.wood, GAR_X+0.25, GAR_PL_Y,-4.0, G2);
+B(0.16,0.16,8.2,        M.wood, 5.2+GAR_W, GAR_PL_Y, 0, G2);
+B(0.16,0.16,9.0,   M.wood, GAR_RX, GAR_PL_Y+GAR_RF_RISE-0.12, 0, G2);
 
 // ── G3: EXTERIOR ─────────────────────────────────────────────
 const G3 = new THREE.Group(); G3.position.y = -22; scene.add(G3);
@@ -662,14 +685,63 @@ B(10.4,0.30,0.22, M.trim, 0, PLATE_Y+0.15, -4.62, G3);
 // Chimney + cap flashing
 B(0.95,3.0,0.95, M.concrete, 3.5, PLATE_Y+RF_RISE-0.5, -1.5, G3);
 B(1.15,0.14,1.15, new THREE.MeshStandardMaterial({color:0x707060, roughness:0.88, metalness:0}), 3.5, PLATE_Y+RF_RISE+2.57, -1.5, G3);
+// ─── Garage exterior ───
+(function(){
+  const GD_W=2.8, GD_H=2.0;
+  const GS=(GAR_W-GD_W)/2;  // side panel width = 1.6
+  // Front wall panels around garage door
+  B(GS,GAR_WL_H,0.22, M.siding, 5.2+GS/2,       FDN_H+GAR_WL_H/2, 4.2, G3);
+  B(GS,GAR_WL_H,0.22, M.siding, 5.2+GAR_W-GS/2, FDN_H+GAR_WL_H/2, 4.2, G3);
+  B(GD_W,GAR_WL_H-GD_H,0.22, M.siding, GAR_X, FDN_H+(GAR_WL_H+GD_H)/2, 4.2, G3);
+  // Junction corner trim (closes gap between main house right wall and garage front)
+  B(0.30,WL_H,0.30, M.trim, 5.2, FDN_H+WL_H/2, 4.2, G3);
+  // Garage door (white panelled)
+  const gDoorM=new THREE.MeshStandardMaterial({color:0xd8d4ca,roughness:0.83,metalness:0.05});
+  B(GD_W,GD_H,0.10, gDoorM, GAR_X, FDN_H+GD_H/2, 4.26, G3);
+  const gPanM=new THREE.MeshStandardMaterial({color:0xbfbbb1,roughness:0.83,metalness:0.05});
+  [FDN_H+0.42,FDN_H+1.0,FDN_H+1.58].forEach(py=>
+    B(GD_W-0.10,0.05,0.09, gPanM, GAR_X, py, 4.28, G3));
+  // Back + right walls
+  B(GAR_W+0.4,GAR_WL_H,0.22, M.siding, GAR_X, FDN_H+GAR_WL_H/2,-4.2, G3);
+  B(0.22,GAR_WL_H,8.8, M.siding, 5.2+GAR_W, FDN_H+GAR_WL_H/2, 0, G3);
+  // Garage ceiling (blocks interior view)
+  B(GAR_W-0.2,0.12,8.6, M.trim, GAR_X, GAR_PL_Y-0.06, 0, G3);
+  // Fascia boards
+  B(GAR_W+0.4,0.26,0.20, M.trim, GAR_X, GAR_PL_Y+0.13,  4.62, G3);
+  B(GAR_W+0.4,0.26,0.20, M.trim, GAR_X, GAR_PL_Y+0.13, -4.62, G3);
+  // Right gable end
+  const gabMat=new THREE.MeshStandardMaterial({map:T_siding,roughness:0.88,metalness:0,side:THREE.DoubleSide});
+  const gg=new THREE.BufferGeometry();
+  const gx=5.2+GAR_W, PY=GAR_PL_Y, RY=GAR_PL_Y+GAR_RF_RISE, zd=4.72;
+  gg.setAttribute('position',new THREE.BufferAttribute(new Float32Array([gx,PY,+zd, gx,PY,-zd, gx,RY,0]),3));
+  gg.setAttribute('uv',new THREE.BufferAttribute(new Float32Array([0,0,1,0,0.5,1]),2));
+  gg.computeVertexNormals();
+  const gm=new THREE.Mesh(gg,gabMat); gm.castShadow=gm.receiveShadow=true; G3.add(gm);
+  // Garage roof slopes
+  const PY2=GAR_PL_Y, RY2=GAR_PL_Y+GAR_RF_RISE, zf=4.72, zb=-4.72;
+  function mkSlope(x1,x2,flip){
+    const geo=new THREE.BufferGeometry();
+    const p=!flip?[x1,PY2,zf,x2,RY2,zb,x1,PY2,zb, x1,PY2,zf,x2,RY2,zf,x2,RY2,zb]
+                 :[x1,PY2,zb,x2,RY2,zf,x1,PY2,zf, x1,PY2,zb,x2,RY2,zb,x2,RY2,zf];
+    const u=!flip?[0,0,1,1,1,0, 0,0,0,1,1,1]:[1,0,0,1,0,0, 1,0,1,1,0,1];
+    geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(p),3));
+    geo.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(u),2));
+    geo.computeVertexNormals(); return geo;
+  }
+  const ls=new THREE.Mesh(mkSlope(5.2,GAR_RX,false),M.roof);
+  ls.castShadow=ls.receiveShadow=true; G3.add(ls);
+  const rs=new THREE.Mesh(mkSlope(5.2+GAR_W,GAR_RX,true),M.roof);
+  rs.castShadow=rs.receiveShadow=true; G3.add(rs);
+  B(0.20,0.12,9.6, M.roof, GAR_RX, RY2-0.06, 0, G3);
+})();
 
 // ── G4: LANDSCAPE ────────────────────────────────────────────
 const G4 = new THREE.Group(); G4.position.y = -22; scene.add(G4);
 // Lawn
 B(80,0.06,80, M.grass, 0, 0.03, 0, G4);
 // Driveway + walkway
-B(3.2,0.06,10, M.driveway, 0, 0.04, 9.0, G4);
-B(1.4,0.06, 3.8, M.driveway, 0, 0.04, 5.7, G4);
+B(GAR_W,0.06,12, M.driveway, GAR_X, 0.04, 10.0, G4);   // garage driveway
+B(1.4,0.06, 3.8, M.driveway, 0, 0.04, 5.7, G4);          // front walkway
 // Trees — layered canopy for more realistic silhouette
 (function(){
   function addTree(x,z,h,r,p) {
@@ -682,21 +754,25 @@ B(1.4,0.06, 3.8, M.driveway, 0, 0.04, 5.7, G4);
       cn.position.set(x,cy,z); cn.castShadow=true; p.add(cn);
     });
   }
-  addTree(-8,  1, 2.8, 1.7, G4);
-  addTree(-8, -4, 3.0, 1.9, G4);
-  addTree( 8,  2, 2.6, 1.6, G4);
-  addTree( 8, -3, 2.8, 1.7, G4);
-  addTree(-9, -7, 2.4, 1.5, G4);
-  addTree( 9,  6, 2.6, 1.6, G4);
+  addTree(-9,  1, 2.8, 1.7, G4);
+  addTree(-9, -4, 3.0, 1.9, G4);
+  addTree(15,  2, 2.6, 1.6, G4);
+  addTree(15, -4, 2.8, 1.7, G4);
+  addTree(-10,-7, 2.4, 1.5, G4);
+  addTree(16,  6, 2.6, 1.6, G4);
 })();
 // Shrubs
 const shrubM = new THREE.MeshStandardMaterial({color:0x2a6018, roughness:0.94, metalness:0});
 [-4.0,-2.6,2.6,4.0].forEach(x=>{
   const sh = new THREE.Mesh(new THREE.SphereGeometry(0.54,8,6), shrubM);
   sh.position.set(x,0.50,5.3); sh.castShadow=true; G4.add(sh);
-  // second smaller sphere on top for bushier look
   const sh2 = new THREE.Mesh(new THREE.SphereGeometry(0.36,7,5), shrubM);
   sh2.position.set(x+0.1,0.78,5.3); sh2.castShadow=true; G4.add(sh2);
+});
+// Shrubs along garage side
+[7.0, 9.5].forEach(x=>{
+  const sh = new THREE.Mesh(new THREE.SphereGeometry(0.50,8,6), shrubM);
+  sh.position.set(x,0.46,-5.4); sh.castShadow=true; G4.add(sh);
 });
 
 // ── GSAP TIMELINE + SCROLLTRIGGER ───────────────────────────
@@ -723,14 +799,17 @@ ScrollTrigger.create({
 });
 
 // ── RENDER LOOP ──────────────────────────────────────────────
-let orbitTheta = Math.atan2(20, 22);
-const orbitDist = Math.sqrt(20*20 + 22*22);
+const orbitCX = 3.0;   // scene centre x (between house and garage)
+let orbitTheta = 0.20;  // start near front-right view
+const orbitDist = 30;
+const orbitY   = 9;
 (function animate() {
   requestAnimationFrame(animate);
-  orbitTheta += 0.00025;    // very slow orbit — one revolution ≈ 7 min
-  camera.position.x = orbitDist * Math.sin(orbitTheta);
+  orbitTheta += 0.00018;
+  camera.position.x = orbitCX + orbitDist * Math.sin(orbitTheta);
+  camera.position.y = orbitY;
   camera.position.z = orbitDist * Math.cos(orbitTheta);
-  camera.lookAt(0, 3, 0);
+  camera.lookAt(orbitCX, 4.0, 0);
   renderer.render(scene, camera);
 })();
 
