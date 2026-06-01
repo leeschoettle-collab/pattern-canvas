@@ -90,66 +90,67 @@
     /* ── PHOTO SCENE ── */
     .scene-wrap { position: relative; flex: 1; overflow: hidden; }
 
-    /* Each scene layer fills the wrap and splits into left (exterior) / right (interior) */
-    .scene-layer {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-    .scene-panel {
-      background-size: cover;
-      background-position: center;
-      position: relative;
-    }
+    /* Full-width scene layers — single room, full bleed */
+    .scene-layer { position: absolute; inset: 0; }
+    .scene-panel { position: absolute; inset: 0; background-size: cover; background-position: center; }
 
-    /* Before: heavily desaturated and darkened — looks neglected */
-    .scene-before {
-      filter: grayscale(0.85) brightness(0.45) contrast(1.05) sepia(0.3);
+    /* Before: desaturated + darkened — neglected fixer-upper, details still visible */
+    .scene-before { filter: grayscale(0.92) brightness(0.50) contrast(1.10) sepia(0.42); }
+    /* Grime + water-stain texture over the before state */
+    .scene-before::after {
+      content: '';
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 180px 240px at 8% 20%,  rgba(90,55,10,0.40) 0%, transparent 70%),
+        radial-gradient(ellipse 140px 180px at 82% 72%, rgba(70,40,5,0.30) 0%, transparent 70%),
+        radial-gradient(ellipse 100px 130px at 45% 88%, rgba(60,35,5,0.22) 0%, transparent 70%),
+        repeating-linear-gradient(-52deg,
+          transparent 0px, transparent 20px,
+          rgba(0,0,0,0.045) 20px, rgba(0,0,0,0.045) 21px);
     }
 
     /* After: clips left-to-right as scroll drives the reveal */
-    .scene-after {
-      clip-path: inset(0 100% 0 0);
-      z-index: 1;
-    }
+    .scene-after { clip-path: inset(0 100% 0 0); z-index: 1; }
 
-    /* Cinematic vignette on top of both layers */
+    /* Cinematic vignette */
     .scene-vignette {
       position: absolute; inset: 0; z-index: 3; pointer-events: none;
       background:
-        linear-gradient(to right, rgba(8,13,26,0.55) 0%, transparent 20%, transparent 80%, rgba(8,13,26,0.55) 100%),
-        linear-gradient(to bottom, rgba(8,13,26,0.4) 0%, transparent 25%, transparent 70%, rgba(8,13,26,0.5) 100%);
+        linear-gradient(to right,  rgba(8,13,26,0.45) 0%, transparent 15%, transparent 85%, rgba(8,13,26,0.45) 100%),
+        linear-gradient(to bottom, rgba(8,13,26,0.25) 0%, transparent 20%, transparent 75%, rgba(8,13,26,0.45) 100%);
     }
 
-    /* Divider blade between before and after */
+    /* Construction-zone divider blade */
     #divider {
-      position: absolute; top: 0; bottom: 0; left: 0%; width: 3px; z-index: 10;
-      background: linear-gradient(180deg, var(--gold), var(--blue));
-      box-shadow: 0 0 16px rgba(201,168,76,0.55), 0 0 40px rgba(201,168,76,0.2);
+      position: absolute; top: 0; bottom: 0; left: 0%; width: 5px; z-index: 11;
+      background: linear-gradient(180deg, #f5c518, var(--gold) 50%, #a07d2a);
+      box-shadow: 0 0 28px rgba(201,168,76,0.9), 0 0 70px rgba(201,168,76,0.35);
       pointer-events: none;
     }
+    /* Hard-hat badge circle */
     #divider::before {
       content: '';
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--gold);
-      box-shadow: 0 0 20px rgba(201,168,76,0.9), 0 0 40px rgba(201,168,76,0.4);
+      width: 56px; height: 56px; border-radius: 50%;
+      background: radial-gradient(circle, #f8d04a 0%, var(--gold) 55%, #7a5e1a 100%);
+      box-shadow: 0 0 30px rgba(245,192,24,1), 0 0 80px rgba(201,168,76,0.55);
     }
-
-    /* Centre dashed line separating ext / int halves */
-    .scene-mid-line {
-      position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
-      background: rgba(255,255,255,0.12);
-      pointer-events: none; z-index: 4;
+    /* Construction icon */
+    #divider::after {
+      content: '⚒';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -54%);
+      font-size: 22px; z-index: 2; pointer-events: none;
     }
-    .half-label {
-      position: absolute; bottom: 16px; z-index: 5;
-      font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase;
-      color: rgba(255,255,255,0.4); transform: translateX(-50%);
-      pointer-events: none;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    /* Diagonal construction-tape glow around divider */
+    .divider-zone {
+      position: absolute; top: 0; bottom: 0; width: 90px;
+      transform: translateX(-50%);
+      z-index: 9; pointer-events: none;
+      background: repeating-linear-gradient(
+        -45deg, transparent 0px, transparent 14px,
+        rgba(201,168,76,0.07) 14px, rgba(201,168,76,0.07) 28px);
     }
 
     /* Improvement label pins */
@@ -326,64 +327,44 @@
 
     <div class="scene-wrap">
 
-      <!-- BEFORE — same photos, heavy degradation filter to simulate a neglected property -->
-      <!-- Swap these URLs with your own before-state photos -->
+      <!-- BEFORE — full-width distressed interior (dark, dated, worn) -->
       <div class="scene-layer scene-before">
-        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80'); background-position: center 40%"></div>
-        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=900&q=80')"></div>
+        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1800&q=80'); background-position: center center"></div>
       </div>
 
-      <!-- AFTER — full-colour, vibrant renovation photos; clips left-to-right on scroll -->
-      <!-- Swap these URLs with your own after-state photos -->
+      <!-- AFTER — full-width renovated interior; clips left-to-right on scroll -->
       <div class="scene-layer scene-after" id="scene-after">
-        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=80'); background-position: center 40%"></div>
-        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=80')"></div>
+        <div class="scene-panel" style="background-image:url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1800&q=80'); background-position: center center"></div>
       </div>
 
       <!-- Visual overlays -->
       <div class="scene-vignette"></div>
       <div id="divider"></div>
-      <div class="scene-mid-line"></div>
-      <div class="half-label" style="left:25%">Exterior</div>
-      <div class="half-label" style="left:75%">Interior</div>
+      <div class="divider-zone" id="divider-zone"></div>
 
-      <!-- ── Improvement label pins ── -->
-      <!-- Exterior labels (left half) -->
-      <div class="imp-label" id="lbl-landscape" style="bottom:18%;left:8%">
-        <div class="imp-label-text">New Landscaping</div>
+      <!-- ── Renovation pins — appear as after-state is revealed ── -->
+      <div class="imp-label" id="lbl-floors" style="bottom:20%;left:10%">
+        <div class="imp-label-text">New Hardwood Floors</div>
         <div class="imp-label-dot"></div>
       </div>
-      <div class="imp-label" id="lbl-siding" style="top:38%;left:18%">
-        <div class="imp-label-text">New Siding</div>
+      <div class="imp-label" id="lbl-cabinets" style="top:38%;left:22%">
+        <div class="imp-label-text">Custom Cabinetry</div>
         <div class="imp-label-dot"></div>
       </div>
-      <div class="imp-label" id="lbl-windows-ext" style="top:28%;left:30%">
-        <div class="imp-label-text">New Windows</div>
+      <div class="imp-label" id="lbl-counters" style="bottom:28%;left:38%">
+        <div class="imp-label-text">Quartz Countertops</div>
         <div class="imp-label-dot"></div>
       </div>
-      <div class="imp-label" id="lbl-roof" style="top:10%;left:37%">
-        <div class="imp-label-text">New Roof</div>
-        <div class="imp-label-dot"></div>
-      </div>
-      <div class="imp-label" id="lbl-door" style="top:50%;left:43%">
-        <div class="imp-label-text">Statement Door</div>
-        <div class="imp-label-dot"></div>
-      </div>
-      <!-- Interior labels (right half) -->
-      <div class="imp-label" id="lbl-floors" style="bottom:14%;left:58%">
-        <div class="imp-label-text">New Flooring</div>
-        <div class="imp-label-dot"></div>
-      </div>
-      <div class="imp-label" id="lbl-walls" style="top:38%;left:62%">
-        <div class="imp-label-text">Fresh Paint</div>
-        <div class="imp-label-dot"></div>
-      </div>
-      <div class="imp-label" id="lbl-kitchen" style="top:44%;left:72%">
-        <div class="imp-label-text">Updated Kitchen</div>
-        <div class="imp-label-dot"></div>
-      </div>
-      <div class="imp-label" id="lbl-lighting" style="top:16%;left:80%">
+      <div class="imp-label" id="lbl-lighting" style="top:14%;left:54%">
         <div class="imp-label-text">Modern Lighting</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-appliances" style="top:42%;left:68%">
+        <div class="imp-label-text">New Appliances</div>
+        <div class="imp-label-dot"></div>
+      </div>
+      <div class="imp-label" id="lbl-paint" style="bottom:22%;left:76%">
+        <div class="imp-label-text">Fresh Paint &amp; Trim</div>
         <div class="imp-label-dot"></div>
       </div>
     </div>
@@ -502,19 +483,18 @@ mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
 // ── Scroll-driven before/after reveal ──
 const sceneAfter   = document.getElementById('scene-after');
 const divider      = document.getElementById('divider');
+const dividerZone  = document.getElementById('divider-zone');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 
+// Labels positioned by left% — appear once divider sweeps past them
 const labelMap = [
-  { id: 'lbl-landscape',   threshold: 0.08 },
-  { id: 'lbl-siding',      threshold: 0.22 },
-  { id: 'lbl-windows-ext', threshold: 0.33 },
-  { id: 'lbl-roof',        threshold: 0.38 },
-  { id: 'lbl-door',        threshold: 0.44 },
-  { id: 'lbl-floors',      threshold: 0.58 },
-  { id: 'lbl-walls',       threshold: 0.65 },
-  { id: 'lbl-kitchen',     threshold: 0.75 },
-  { id: 'lbl-lighting',    threshold: 0.82 },
+  { id: 'lbl-floors',     threshold: 0.10 },
+  { id: 'lbl-cabinets',   threshold: 0.22 },
+  { id: 'lbl-counters',   threshold: 0.38 },
+  { id: 'lbl-lighting',   threshold: 0.54 },
+  { id: 'lbl-appliances', threshold: 0.68 },
+  { id: 'lbl-paint',      threshold: 0.82 },
 ];
 
 ScrollTrigger.create({
@@ -525,10 +505,13 @@ ScrollTrigger.create({
   onUpdate(self) {
     const p   = self.progress;
     const pct = p * 100;
-    sceneAfter.style.clipPath  = `inset(0 ${100 - pct}% 0 0)`;
-    divider.style.left         = `${pct}%`;
-    progressFill.style.width   = `${pct}%`;
-    progressText.textContent   = `Renovation ${Math.round(pct)}% Complete`;
+    sceneAfter.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+    divider.style.left        = `${pct}%`;
+    dividerZone.style.left    = `${pct}%`;
+    progressFill.style.width  = `${pct}%`;
+    progressText.textContent  = pct >= 99
+      ? 'Renovation Complete ✓'
+      : `Renovation ${Math.round(pct)}% Complete`;
     labelMap.forEach(({ id, threshold }) => {
       const el = document.getElementById(id);
       if (el) el.classList.toggle('visible', p >= threshold);
