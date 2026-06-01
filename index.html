@@ -568,6 +568,62 @@
       .form-row { grid-template-columns: 1fr; }
       footer { flex-direction: column; gap: 10px; text-align: center; padding: 32px 24px; }
     }
+    /* ── Hamburger / Mobile Menu ── */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 24px;
+      height: 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      z-index: 201;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: var(--white);
+      border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    .nav-mobile {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8,13,26,0.97);
+      z-index: 200;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile ul { list-style: none; text-align: center; padding: 0; margin: 0; }
+    .nav-mobile ul li { margin: 18px 0; }
+    .nav-mobile ul li a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-mobile ul li a:hover { color: var(--gold); }
+    .nav-mobile .mob-cta {
+      background: var(--blue);
+      color: var(--white) !important;
+      padding: 12px 36px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 8px;
+    }
+    @media (max-width: 768px) { .nav-hamburger { display: flex; } }
   </style>
 </head>
 <body>
@@ -582,7 +638,19 @@
     <li><a href="#invest">Invest</a></li>
     <li><a href="#contact" class="nav-cta">Get In Touch</a></li>
   </ul>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div class="nav-mobile" id="nav-mobile">
+  <ul>
+    <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="development.html">Development</a></li>
+    <li><a href="#invest">Invest</a></li>
+    <li><a href="#contact" class="mob-cta">Get In Touch</a></li>
+  </ul>
+</div>
 
 <!-- Hero -->
 <section id="hero">
@@ -849,6 +917,19 @@ const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', window.scrollY > 50);
 }, { passive: true });
+// ── Hamburger ──
+const hamburger = document.getElementById('nav-hamburger');
+const mobileNav = document.getElementById('nav-mobile');
+hamburger.addEventListener('click', () => {
+  const open = hamburger.classList.toggle('open');
+  mobileNav.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  hamburger.classList.remove('open');
+  mobileNav.classList.remove('open');
+  document.body.style.overflow = '';
+}));
 
 // ── Hero entrance ──
 gsap.timeline({ delay: 0.2 })
