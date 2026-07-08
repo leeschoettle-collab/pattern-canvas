@@ -260,6 +260,12 @@
     .listing-video-wrap h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; margin-bottom: 24px; color: var(--white); }
     .listing-video-wrap video { width: 100%; border-radius: 8px; display: block; background: #000; }
 
+    .listing-num {
+      font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: rgba(45,53,208,0.12);
+      letter-spacing: 0.1em; line-height: 1; margin-bottom: -20px;
+    }
+    .listing-divider { border: none; border-top: 1px solid rgba(45,53,208,0.15); margin: 72px 0; }
+
     @media (max-width: 900px) {
       #listings { padding: 80px 24px; }
       .listing-card { grid-template-columns: 1fr; gap: 36px; }
@@ -429,8 +435,10 @@
 <section id="listings">
   <div class="listings-inner">
     <p class="section-label reveal">Available Listings</p>
-    <h2 class="section-title reveal">FEATURED<br><span style="color:var(--gold)">PROPERTY</span></h2>
+    <h2 class="section-title reveal">ACTIVE<br><span style="color:var(--gold)">LISTINGS</span></h2>
 
+    <!-- Listing 01 -->
+    <p class="listing-num reveal">01</p>
     <div class="listing-card">
       <!-- Photo Gallery -->
       <div class="listing-gallery reveal">
@@ -523,6 +531,96 @@
         <source src="listings/107-palmer-ln/listing-video.mp4" type="video/mp4">
       </video>
     </div>
+
+    <hr class="listing-divider">
+
+    <!-- Listing 02 -->
+    <p class="listing-num reveal">02</p>
+    <div class="listing-card">
+      <!-- Photo Gallery -->
+      <div class="listing-gallery reveal">
+        <div class="gallery-main">
+          <span class="listing-badge">Active</span>
+          <img id="gallery-main-2" src="listings/78-e-watson-dr/exterior-1.jpg" alt="78 E Watson Dr — Front Exterior">
+          <div class="listing-price-tag">$739,000</div>
+        </div>
+        <div class="gallery-thumbs">
+          <div class="gallery-thumb active" onclick="swapPhoto2(this,'listings/78-e-watson-dr/exterior-1.jpg','Front Exterior')">
+            <img src="listings/78-e-watson-dr/exterior-1.jpg" alt="Front Exterior">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/aerial-1.jpg','Aerial View')">
+            <img src="listings/78-e-watson-dr/aerial-1.jpg" alt="Aerial View">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/aerial-twilight.jpg','Aerial Twilight')">
+            <img src="listings/78-e-watson-dr/aerial-twilight.jpg" alt="Aerial Twilight">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/view.jpg','Golf Course & Lake View')">
+            <img src="listings/78-e-watson-dr/view.jpg" alt="Golf Course & Lake View">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/living-room.jpg','Living Room')">
+            <img src="listings/78-e-watson-dr/living-room.jpg" alt="Living Room">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/kitchen.jpg','Kitchen')">
+            <img src="listings/78-e-watson-dr/kitchen.jpg" alt="Kitchen">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/primary-bedroom.jpg','Primary Bedroom')">
+            <img src="listings/78-e-watson-dr/primary-bedroom.jpg" alt="Primary Bedroom">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/pool.jpg','Community Pool')">
+            <img src="listings/78-e-watson-dr/pool.jpg" alt="Community Pool">
+          </div>
+        </div>
+      </div>
+
+      <!-- Property Details -->
+      <div class="listing-details reveal">
+        <div class="listing-address">
+          <h3>78 E Watson Dr</h3>
+          <p>Saratoga Springs, UT 84045</p>
+          <p class="listing-mls">MLS# 2144296 · TalonsCove Golf Community</p>
+        </div>
+
+        <div class="listing-specs">
+          <div class="listing-spec"><span>4</span><small>Beds</small></div>
+          <div class="listing-spec"><span>3+1</span><small>Baths</small></div>
+          <div class="listing-spec"><span>3,153</span><small>Sq Ft</small></div>
+          <div class="listing-spec"><span>2-Car</span><small>Garage</small></div>
+          <div class="listing-spec"><span>2026</span><small>Built</small></div>
+        </div>
+
+        <p class="listing-desc">A larger three-story luxury townhome with a fully finished basement, situated on TalonsCove Golf Course minutes from Utah Lake. More space, more flexibility — the finished lower level adds a full bedroom and bathroom perfect for guests, a gym, or a media room.</p>
+
+        <ul class="listing-features">
+          <li>Fully finished basement — bedroom, bathroom, and flex space</li>
+          <li>Open-concept second floor: kitchen, dining & living with floor-to-ceiling windows</li>
+          <li>Primary suite with private balcony, sitting area & walk-in closet</li>
+          <li>Quartz countertops, semi-custom soft-close cabinetry, gas range</li>
+          <li>8-ft doors, custom lighting, tankless water heater, water softener plumbing</li>
+          <li>Refrigerator, range, microwave & range hood included</li>
+          <li>Lake, mountain & valley views — adjacent to golf course</li>
+        </ul>
+
+        <div class="listing-hoa">
+          <p class="hoa-label">HOA Amenities · $250/mo</p>
+          <div class="hoa-tags">
+            <span>Natural Hot Springs Pool</span>
+            <span>Second Outdoor Pool</span>
+            <span>Two Fitness Centers</span>
+            <span>Two Clubhouses</span>
+            <span>Private Marina</span>
+            <span>Boat Dock on Utah Lake</span>
+            <span>Game Room</span>
+            <span>Picnic Pavilion</span>
+          </div>
+        </div>
+
+        <div class="listing-ctas">
+          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <a href="https://utahrealestate.com/2144296" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -564,7 +662,14 @@ function swapPhoto(thumb, src, alt) {
   const main = document.getElementById('gallery-main');
   main.style.opacity = '0';
   setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
-  document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+function swapPhoto2(thumb, src, alt) {
+  const main = document.getElementById('gallery-main-2');
+  main.style.opacity = '0';
+  setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
+  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
   thumb.classList.add('active');
 }
 
