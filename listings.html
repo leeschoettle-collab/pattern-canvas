@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listings — LS Realty</title>
+  <meta name="description" content="Active real estate listings represented by Lee Schoettle at LS Realty. Luxury homes and townhomes in Saratoga Springs, UT." />
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-T7HSM48FKQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-T7HSM48FKQ');
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #080d1a; --navy-mid: #0d1f3c;
+      --blue: #2d35d0; --blue-light: #4f58e8;
+      --gold: #c9a84c; --white: #ffffff; --muted: rgba(255,255,255,0.55);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--white); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 22px 48px; display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s, padding 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled { background: rgba(8,13,26,0.96); backdrop-filter: blur(16px); padding: 14px 48px; border-color: rgba(45,53,208,0.2); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.12em; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 36px; list-style: none; align-items: center; }
+    .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--white); }
+    .nav-cta { background: var(--blue) !important; color: var(--white) !important; padding: 8px 20px; border-radius: 4px; }
+
+    /* Hero */
+    #hero {
+      height: 55vh; min-height: 420px; display: flex; align-items: flex-end;
+      position: relative; overflow: hidden;
+      background: linear-gradient(175deg, var(--navy) 0%, #080e22 100%);
+      padding: 0 60px 60px;
+    }
+    .hero-bg-text {
+      position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(8rem, 18vw, 20rem);
+      color: rgba(45,53,208,0.06); letter-spacing: 0.05em; line-height: 1; pointer-events: none; white-space: nowrap;
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 7vw, 6rem); line-height: 0.92; letter-spacing: 0.025em; }
+    .hero-title .gold { color: var(--gold); }
+    .hero-count { display: inline-block; background: rgba(45,53,208,0.18); border: 1px solid rgba(45,53,208,0.35); color: var(--blue-light); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; padding: 6px 14px; border-radius: 3px; margin-top: 20px; }
+
+    .btn { display: inline-block; padding: 14px 32px; border-radius: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; transition: all 0.25s; border: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(45,53,208,0.45); }
+    .btn-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+    .btn-gold:hover { background: rgba(201,168,76,0.1); transform: translateY(-2px); }
+
+    /* Listings */
+    #listings { padding: 80px 60px 130px; }
+    .listings-inner { max-width: 1200px; margin: 0 auto; }
+
+    .listing-num { font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: rgba(45,53,208,0.12); letter-spacing: 0.1em; line-height: 1; margin-bottom: -20px; }
+    .listing-card { display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px; align-items: start; margin-bottom: 72px; }
+    .listing-divider { border: none; border-top: 1px solid rgba(45,53,208,0.15); margin: 72px 0; }
+
+    /* Gallery */
+    .listing-gallery { position: sticky; top: 100px; }
+    .gallery-main { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 4/3; background: #0a1428; }
+    .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.35s; }
+    .listing-badge {
+      position: absolute; top: 18px; left: 18px; z-index: 2;
+      background: #22c55e; color: #fff; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.2em; text-transform: uppercase; padding: 5px 12px; border-radius: 3px;
+    }
+    .listing-price-tag {
+      position: absolute; bottom: 18px; left: 18px; z-index: 2;
+      font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #fff;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.7); letter-spacing: 0.04em;
+    }
+    .gallery-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+    .gallery-thumb { aspect-ratio: 4/3; border-radius: 5px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s, opacity 0.2s; opacity: 0.65; }
+    .gallery-thumb:hover, .gallery-thumb.active { border-color: var(--gold); opacity: 1; }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Details */
+    .listing-address { margin-bottom: 24px; }
+    .listing-address h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 0.04em; line-height: 1; margin-bottom: 4px; }
+    .listing-address p { font-size: 13px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+    .listing-mls { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; letter-spacing: 0.08em; }
+
+    .listing-specs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 28px; border: 1px solid rgba(45,53,208,0.2); border-radius: 6px; overflow: hidden; }
+    .listing-spec { padding: 14px 8px; text-align: center; border-right: 1px solid rgba(45,53,208,0.2); }
+    .listing-spec:last-child { border-right: none; }
+    .listing-spec span { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; color: var(--gold); letter-spacing: 0.04em; line-height: 1; margin-bottom: 3px; }
+    .listing-spec small { font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+    .listing-desc { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.8; margin-bottom: 24px; }
+
+    .listing-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 9px; }
+    .listing-features li { font-size: 13px; color: rgba(255,255,255,0.72); padding-left: 18px; position: relative; line-height: 1.5; }
+    .listing-features li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-size: 11px; font-weight: 700; top: 1px; }
+
+    .listing-hoa { background: rgba(45,53,208,0.08); border: 1px solid rgba(45,53,208,0.18); border-radius: 6px; padding: 18px 20px; margin-bottom: 28px; }
+    .hoa-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .hoa-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hoa-tags span { font-size: 11px; color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.06); border-radius: 3px; padding: 4px 10px; border: 1px solid rgba(255,255,255,0.08); }
+
+    .listing-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* Listing video */
+    .listing-video-wrap { border-top: 1px solid rgba(45,53,208,0.15); padding-top: 56px; margin-bottom: 0; }
+    .video-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .listing-video-wrap h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; margin-bottom: 24px; }
+    .listing-video-wrap video { width: 100%; border-radius: 8px; display: block; background: #000; }
+
+    /* CTA */
+    #cta { padding: 120px 60px; text-align: center; position: relative; overflow: hidden; }
+    #cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 100% at 50% 50%, rgba(45,53,208,0.1) 0%, transparent 65%); pointer-events: none; }
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    #cta h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 5rem); letter-spacing: 0.03em; line-height: 0.95; max-width: 700px; margin: 0 auto 20px; }
+    #cta h2 .gold { color: var(--gold); }
+    #cta p { font-size: 15px; color: var(--muted); max-width: 500px; margin: 0 auto 48px; line-height: 1.8; }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    footer { background: #040710; padding: 40px 60px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.12em; color: rgba(255,255,255,0.35); }
+    .footer-logo span { color: rgba(201,168,76,0.5); }
+    footer p { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    .reveal { opacity: 0; transform: translateY(28px); }
+
+    /* Hamburger */
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; z-index: 201; }
+    .nav-hamburger span { display: block; width: 100%; height: 2px; background: var(--white); border-radius: 2px; transition: transform 0.3s, opacity 0.3s; }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    .nav-mobile { display: none; position: fixed; inset: 0; background: rgba(8,13,26,0.97); z-index: 200; flex-direction: column; align-items: center; justify-content: center; }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile ul { list-style: none; text-align: center; padding: 0; margin: 0; }
+    .nav-mobile ul li { margin: 18px 0; }
+    .nav-mobile ul li a { color: rgba(255,255,255,0.85); text-decoration: none; font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-mobile ul li a:hover { color: var(--gold); }
+    .nav-mobile .mob-cta { background: var(--blue); color: var(--white) !important; padding: 12px 36px; border-radius: 4px; display: inline-block; margin-top: 8px; }
+    @media (max-width: 768px) { .nav-hamburger { display: flex; } }
+
+    @media (max-width: 900px) {
+      #hero { padding: 0 24px 48px; }
+      #listings { padding: 60px 24px 100px; }
+      .listing-card { grid-template-columns: 1fr; gap: 36px; }
+      .listing-gallery { position: static; }
+      .listing-specs { grid-template-columns: repeat(3, 1fr); }
+      .listing-spec:nth-child(3) { border-right: none; }
+      .listing-spec:nth-child(4), .listing-spec:nth-child(5) { border-top: 1px solid rgba(45,53,208,0.2); }
+      #cta { padding: 80px 24px; }
+      footer { flex-direction: column; gap: 10px; text-align: center; padding: 32px 24px; }
+      nav { padding: 16px 24px; }
+      nav.scrolled { padding: 12px 24px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="index.html" class="nav-logo">LS <span>REALTY</span></a>
+  <ul class="nav-links">
+    <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="listings.html" class="active">Listings</a></li>
+    <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="development.html">Development</a></li>
+    <li><a href="index.html#invest">Invest</a></li>
+    <li><a href="index.html#contact" class="nav-cta">Get In Touch</a></li>
+  </ul>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <ul>
+    <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="listings.html">Listings</a></li>
+    <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="development.html">Development</a></li>
+    <li><a href="index.html#invest">Invest</a></li>
+    <li><a href="index.html#contact" class="mob-cta">Get In Touch</a></li>
+  </ul>
+</div>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-bg-text">LIST</div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">LS Realty · Saratoga Springs, UT</p>
+    <h1 class="hero-title">AVAILABLE<br><span class="gold">LISTINGS</span></h1>
+    <span class="hero-count">2 Active Properties</span>
+  </div>
+</section>
+
+<!-- Listings -->
+<section id="listings">
+  <div class="listings-inner">
+
+    <!-- Listing 01 -->
+    <p class="listing-num reveal">01</p>
+    <div class="listing-card">
+      <div class="listing-gallery reveal">
+        <div class="gallery-main">
+          <span class="listing-badge">Active</span>
+          <img id="gallery-main" src="listings/107-palmer-ln/exterior-1.jpg" alt="107 Palmer Ln — Front Exterior">
+          <div class="listing-price-tag">$539,000</div>
+        </div>
+        <div class="gallery-thumbs">
+          <div class="gallery-thumb active" onclick="swapPhoto(this,'listings/107-palmer-ln/exterior-1.jpg','Front Exterior')">
+            <img src="listings/107-palmer-ln/exterior-1.jpg" alt="Front Exterior">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/kitchen.jpg','Kitchen')">
+            <img src="listings/107-palmer-ln/kitchen.jpg" alt="Kitchen">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/living-room.jpg','Living Room')">
+            <img src="listings/107-palmer-ln/living-room.jpg" alt="Living Room">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/primary-bedroom.jpg','Primary Bedroom')">
+            <img src="listings/107-palmer-ln/primary-bedroom.jpg" alt="Primary Bedroom">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/dining-room.jpg','Dining Room')">
+            <img src="listings/107-palmer-ln/dining-room.jpg" alt="Dining Room">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/pool.jpg','Community Pool')">
+            <img src="listings/107-palmer-ln/pool.jpg" alt="Community Pool">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/aerial-1.jpg','Aerial View')">
+            <img src="listings/107-palmer-ln/aerial-1.jpg" alt="Aerial View">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/view.jpg','Lake & Mountain View')">
+            <img src="listings/107-palmer-ln/view.jpg" alt="Lake & Mountain View">
+          </div>
+        </div>
+      </div>
+
+      <div class="listing-details reveal">
+        <div class="listing-address">
+          <h3>107 Palmer Ln</h3>
+          <p>Saratoga Springs, UT 84045</p>
+          <p class="listing-mls">MLS# 2144295 · Fairway Townhomes at TalonsCove</p>
+        </div>
+        <div class="listing-specs">
+          <div class="listing-spec"><span>4</span><small>Beds</small></div>
+          <div class="listing-spec"><span>2+2</span><small>Baths</small></div>
+          <div class="listing-spec"><span>2,450</span><small>Sq Ft</small></div>
+          <div class="listing-spec"><span>2-Car</span><small>Garage</small></div>
+          <div class="listing-spec"><span>2026</span><small>Built</small></div>
+        </div>
+        <p class="listing-desc">Brand-new three-story end-unit luxury townhome on TalonsCove Golf Course, moments from Utah Lake. Builder-fresh construction with high-end finishes throughout — open-concept living, floor-to-ceiling windows, gas fireplace, and views of the lake, mountains, and valley.</p>
+        <ul class="listing-features">
+          <li>Gourmet kitchen — quartz countertops, semi-custom soft-close cabinetry, gas range</li>
+          <li>Second-floor open concept: kitchen, dining & living with floor-to-ceiling windows</li>
+          <li>Primary suite + 3 additional bedrooms / flex room</li>
+          <li>8-ft doors, custom lighting, tankless water heater, smart thermostat</li>
+          <li>2-car garage — epoxy floors, aluminum-glass door, security camera</li>
+          <li>Lake, mountain & valley views — right on the golf course</li>
+        </ul>
+        <div class="listing-hoa">
+          <p class="hoa-label">HOA Amenities · $250/mo</p>
+          <div class="hoa-tags">
+            <span>Natural Hot Springs Pool</span>
+            <span>Second Outdoor Pool</span>
+            <span>Two Fitness Centers</span>
+            <span>Two Clubhouses</span>
+            <span>Private Marina</span>
+            <span>Boat Dock on Utah Lake</span>
+            <span>Walking & Biking Trails</span>
+            <span>Pets Welcome</span>
+          </div>
+        </div>
+        <div class="listing-ctas">
+          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <a href="https://utahrealestate.com/2144295" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cinematic Video -->
+    <div class="listing-video-wrap reveal">
+      <p class="video-eyebrow">Cinematic Listing Tour</p>
+      <h3>107 Palmer Ln — Full Walkthrough</h3>
+      <video controls preload="none" poster="listings/107-palmer-ln/exterior-1.jpg">
+        <source src="listings/107-palmer-ln/listing-video.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <hr class="listing-divider">
+
+    <!-- Listing 02 -->
+    <p class="listing-num reveal">02</p>
+    <div class="listing-card">
+      <div class="listing-gallery reveal">
+        <div class="gallery-main">
+          <span class="listing-badge">Active</span>
+          <img id="gallery-main-2" src="listings/78-e-watson-dr/exterior-1.jpg" alt="78 E Watson Dr — Front Exterior">
+          <div class="listing-price-tag">$739,000</div>
+        </div>
+        <div class="gallery-thumbs">
+          <div class="gallery-thumb active" onclick="swapPhoto2(this,'listings/78-e-watson-dr/exterior-1.jpg','Front Exterior')">
+            <img src="listings/78-e-watson-dr/exterior-1.jpg" alt="Front Exterior">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/aerial-1.jpg','Aerial View')">
+            <img src="listings/78-e-watson-dr/aerial-1.jpg" alt="Aerial View">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/aerial-twilight.jpg','Aerial Twilight')">
+            <img src="listings/78-e-watson-dr/aerial-twilight.jpg" alt="Aerial Twilight">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/view.jpg','Golf Course & Lake View')">
+            <img src="listings/78-e-watson-dr/view.jpg" alt="Golf Course & Lake View">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/living-room.jpg','Living Room')">
+            <img src="listings/78-e-watson-dr/living-room.jpg" alt="Living Room">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/kitchen.jpg','Kitchen')">
+            <img src="listings/78-e-watson-dr/kitchen.jpg" alt="Kitchen">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/primary-bedroom.jpg','Primary Bedroom')">
+            <img src="listings/78-e-watson-dr/primary-bedroom.jpg" alt="Primary Bedroom">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/pool.jpg','Community Pool')">
+            <img src="listings/78-e-watson-dr/pool.jpg" alt="Community Pool">
+          </div>
+        </div>
+      </div>
+
+      <div class="listing-details reveal">
+        <div class="listing-address">
+          <h3>78 E Watson Dr</h3>
+          <p>Saratoga Springs, UT 84045</p>
+          <p class="listing-mls">MLS# 2144296 · TalonsCove Golf Community</p>
+        </div>
+        <div class="listing-specs">
+          <div class="listing-spec"><span>4</span><small>Beds</small></div>
+          <div class="listing-spec"><span>3+1</span><small>Baths</small></div>
+          <div class="listing-spec"><span>3,153</span><small>Sq Ft</small></div>
+          <div class="listing-spec"><span>2-Car</span><small>Garage</small></div>
+          <div class="listing-spec"><span>2026</span><small>Built</small></div>
+        </div>
+        <p class="listing-desc">A larger three-story luxury townhome with a fully finished basement, situated on TalonsCove Golf Course minutes from Utah Lake. More space, more flexibility — the finished lower level adds a full bedroom and bathroom perfect for guests, a gym, or a media room.</p>
+        <ul class="listing-features">
+          <li>Fully finished basement — bedroom, bathroom, and flex space</li>
+          <li>Open-concept second floor: kitchen, dining & living with floor-to-ceiling windows</li>
+          <li>Primary suite with private balcony, sitting area & walk-in closet</li>
+          <li>Quartz countertops, semi-custom soft-close cabinetry, gas range</li>
+          <li>8-ft doors, custom lighting, tankless water heater, water softener plumbing</li>
+          <li>Refrigerator, range, microwave & range hood included</li>
+          <li>Lake, mountain & valley views — adjacent to golf course</li>
+        </ul>
+        <div class="listing-hoa">
+          <p class="hoa-label">HOA Amenities · $250/mo</p>
+          <div class="hoa-tags">
+            <span>Natural Hot Springs Pool</span>
+            <span>Second Outdoor Pool</span>
+            <span>Two Fitness Centers</span>
+            <span>Two Clubhouses</span>
+            <span>Private Marina</span>
+            <span>Boat Dock on Utah Lake</span>
+            <span>Game Room</span>
+            <span>Picnic Pavilion</span>
+          </div>
+        </div>
+        <div class="listing-ctas">
+          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <a href="https://utahrealestate.com/2144296" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <p class="section-label reveal" style="text-align:center">Work With Lee</p>
+  <h2 class="reveal">INTERESTED IN<br>ONE OF THESE <span class="gold">PROPERTIES?</span></h2>
+  <p class="reveal">Lee represents both buyers and sellers. Whether you want to schedule a private showing or have questions about the community, reach out directly.</p>
+  <div class="cta-btns reveal">
+    <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+    <a href="buy-sell.html" class="btn btn-gold">About Lee's Approach</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">LS <span>REALTY</span></div>
+  <p>© 2025 LS Realty · Lee Schoettle · All rights reserved</p>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
+
+const hamburger = document.getElementById('nav-hamburger');
+const mobileNav = document.getElementById('nav-mobile');
+hamburger.addEventListener('click', () => {
+  const open = hamburger.classList.toggle('open');
+  mobileNav.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  hamburger.classList.remove('open');
+  mobileNav.classList.remove('open');
+  document.body.style.overflow = '';
+}));
+
+function swapPhoto(thumb, src, alt) {
+  const main = document.getElementById('gallery-main');
+  main.style.opacity = '0';
+  setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
+  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+function swapPhoto2(thumb, src, alt) {
+  const main = document.getElementById('gallery-main-2');
+  main.style.opacity = '0';
+  setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
+  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, {
+    opacity: 1, y: 0, duration: 0.7, ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' }
+  });
+});
+</script>
+</body>
+</html>

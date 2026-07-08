@@ -205,74 +205,34 @@
     }
     @media (max-width: 768px) { .nav-hamburger { display: flex; } }
 
-    /* ── Listings Section ── */
-    #listings { background: var(--navy-mid); border-top: 1px solid rgba(45,53,208,0.15); padding: 130px 60px; }
-    .listings-inner { max-width: 1200px; margin: 0 auto; }
-    .listing-card { display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px; align-items: start; margin-bottom: 72px; }
+    /* ── Listings Teaser ── */
+    #listings-teaser { padding: 100px 60px; background: var(--navy-mid); border-top: 1px solid rgba(45,53,208,0.15); border-bottom: 1px solid rgba(45,53,208,0.15); }
+    .teaser-inner { max-width: 1100px; margin: 0 auto; }
+    .teaser-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; }
+    .teaser-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.4rem,4vw,3.2rem); letter-spacing: 0.03em; line-height: 0.95; }
+    .teaser-view-all { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-decoration: none; white-space: nowrap; transition: opacity 0.2s; padding-bottom: 4px; border-bottom: 1px solid rgba(201,168,76,0.4); }
+    .teaser-view-all:hover { opacity: 0.75; }
+    .teaser-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .teaser-card { background: rgba(8,13,26,0.6); border: 1px solid rgba(45,53,208,0.15); border-radius: 8px; overflow: hidden; transition: border-color 0.3s, transform 0.3s; text-decoration: none; display: block; }
+    .teaser-card:hover { border-color: rgba(45,53,208,0.45); transform: translateY(-4px); }
+    .teaser-photo { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+    .teaser-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+    .teaser-card:hover .teaser-photo img { transform: scale(1.03); }
+    .teaser-badge { position: absolute; top: 14px; left: 14px; background: #22c55e; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; }
+    .teaser-price { position: absolute; bottom: 14px; left: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.7); letter-spacing: 0.04em; }
+    .teaser-body { padding: 22px 24px 28px; }
+    .teaser-address h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.04em; line-height: 1; margin-bottom: 3px; color: var(--white); }
+    .teaser-address p { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+    .teaser-specs { display: flex; gap: 20px; margin-bottom: 20px; }
+    .teaser-spec { font-size: 11px; color: rgba(255,255,255,0.55); }
+    .teaser-spec strong { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; color: var(--gold); letter-spacing: 0.04em; line-height: 1.1; }
+    .teaser-cta { display: block; text-align: center; padding: 12px; background: var(--blue); color: var(--white); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border-radius: 4px; transition: background 0.2s; }
+    .teaser-card:hover .teaser-cta { background: var(--blue-light); }
 
-    /* Gallery */
-    .listing-gallery { position: sticky; top: 100px; }
-    .gallery-main { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 4/3; background: #0a1428; }
-    .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.35s; }
-    .listing-badge {
-      position: absolute; top: 18px; left: 18px; z-index: 2;
-      background: #22c55e; color: #fff; font-size: 10px; font-weight: 700;
-      letter-spacing: 0.2em; text-transform: uppercase; padding: 5px 12px; border-radius: 3px;
-    }
-    .listing-price-tag {
-      position: absolute; bottom: 18px; left: 18px; z-index: 2;
-      font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #fff;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.7); letter-spacing: 0.04em;
-    }
-    .gallery-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
-    .gallery-thumb { aspect-ratio: 4/3; border-radius: 5px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s, opacity 0.2s; opacity: 0.65; }
-    .gallery-thumb:hover, .gallery-thumb.active { border-color: var(--gold); opacity: 1; }
-    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-    /* Details */
-    .listing-address { margin-bottom: 24px; }
-    .listing-address h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 0.04em; line-height: 1; margin-bottom: 4px; }
-    .listing-address p { font-size: 13px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
-    .listing-mls { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; letter-spacing: 0.08em; }
-
-    .listing-specs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 28px; border: 1px solid rgba(45,53,208,0.2); border-radius: 6px; overflow: hidden; }
-    .listing-spec { padding: 14px 8px; text-align: center; border-right: 1px solid rgba(45,53,208,0.2); }
-    .listing-spec:last-child { border-right: none; }
-    .listing-spec span { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; color: var(--gold); letter-spacing: 0.04em; line-height: 1; margin-bottom: 3px; }
-    .listing-spec small { font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
-
-    .listing-desc { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.8; margin-bottom: 24px; }
-
-    .listing-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 9px; }
-    .listing-features li { font-size: 13px; color: rgba(255,255,255,0.72); padding-left: 18px; position: relative; line-height: 1.5; }
-    .listing-features li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-size: 11px; font-weight: 700; top: 1px; }
-
-    .listing-hoa { background: rgba(45,53,208,0.08); border: 1px solid rgba(45,53,208,0.18); border-radius: 6px; padding: 18px 20px; margin-bottom: 28px; }
-    .hoa-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
-    .hoa-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-    .hoa-tags span { font-size: 11px; color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.06); border-radius: 3px; padding: 4px 10px; border: 1px solid rgba(255,255,255,0.08); }
-
-    .listing-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-
-    /* Listing Video */
-    .listing-video-wrap { border-top: 1px solid rgba(45,53,208,0.15); padding-top: 56px; }
-    .video-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
-    .listing-video-wrap h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; margin-bottom: 24px; color: var(--white); }
-    .listing-video-wrap video { width: 100%; border-radius: 8px; display: block; background: #000; }
-
-    .listing-num {
-      font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: rgba(45,53,208,0.12);
-      letter-spacing: 0.1em; line-height: 1; margin-bottom: -20px;
-    }
-    .listing-divider { border: none; border-top: 1px solid rgba(45,53,208,0.15); margin: 72px 0; }
-
-    @media (max-width: 900px) {
-      #listings { padding: 80px 24px; }
-      .listing-card { grid-template-columns: 1fr; gap: 36px; }
-      .listing-gallery { position: static; }
-      .listing-specs { grid-template-columns: repeat(3, 1fr); }
-      .listing-spec:nth-child(3) { border-right: none; }
-      .listing-spec:nth-child(4), .listing-spec:nth-child(5) { border-top: 1px solid rgba(45,53,208,0.2); }
+    @media (max-width: 768px) {
+      #listings-teaser { padding: 70px 24px; }
+      .teaser-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .teaser-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -282,6 +242,7 @@
   <a href="index.html" class="nav-logo">LS <span>REALTY</span></a>
   <ul class="nav-links">
     <li><a href="buy-sell.html" class="active">Buy &amp; Sell</a></li>
+    <li><a href="listings.html">Listings</a></li>
     <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
     <li><a href="development.html">Development</a></li>
     <li><a href="index.html#invest">Invest</a></li>
@@ -294,6 +255,7 @@
 <div class="nav-mobile" id="nav-mobile">
   <ul>
     <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
+    <li><a href="listings.html">Listings</a></li>
     <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
     <li><a href="development.html">Development</a></li>
     <li><a href="index.html#invest">Invest</a></li>
@@ -431,196 +393,58 @@
   </div>
 </section>
 
-<!-- Available Listings -->
-<section id="listings">
-  <div class="listings-inner">
-    <p class="section-label reveal">Available Listings</p>
-    <h2 class="section-title reveal">ACTIVE<br><span style="color:var(--gold)">LISTINGS</span></h2>
-
-    <!-- Listing 01 -->
-    <p class="listing-num reveal">01</p>
-    <div class="listing-card">
-      <!-- Photo Gallery -->
-      <div class="listing-gallery reveal">
-        <div class="gallery-main">
-          <span class="listing-badge">Active</span>
-          <img id="gallery-main" src="listings/107-palmer-ln/exterior-1.jpg" alt="107 Palmer Ln — Front Exterior">
-          <div class="listing-price-tag">$539,000</div>
-        </div>
-        <div class="gallery-thumbs">
-          <div class="gallery-thumb active" onclick="swapPhoto(this,'listings/107-palmer-ln/exterior-1.jpg','Front Exterior')">
-            <img src="listings/107-palmer-ln/exterior-1.jpg" alt="Front Exterior">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/kitchen.jpg','Kitchen')">
-            <img src="listings/107-palmer-ln/kitchen.jpg" alt="Kitchen">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/living-room.jpg','Living Room')">
-            <img src="listings/107-palmer-ln/living-room.jpg" alt="Living Room">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/primary-bedroom.jpg','Primary Bedroom')">
-            <img src="listings/107-palmer-ln/primary-bedroom.jpg" alt="Primary Bedroom">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/dining-room.jpg','Dining Room')">
-            <img src="listings/107-palmer-ln/dining-room.jpg" alt="Dining Room">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/pool.jpg','Community Pool')">
-            <img src="listings/107-palmer-ln/pool.jpg" alt="Community Pool">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/aerial-1.jpg','Aerial View')">
-            <img src="listings/107-palmer-ln/aerial-1.jpg" alt="Aerial View">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto(this,'listings/107-palmer-ln/view.jpg','Lake & Mountain View')">
-            <img src="listings/107-palmer-ln/view.jpg" alt="Lake & Mountain View">
-          </div>
-        </div>
+<!-- Listings Teaser -->
+<section id="listings-teaser">
+  <div class="teaser-inner">
+    <div class="teaser-header reveal">
+      <div>
+        <p class="section-label">Active Listings</p>
+        <h2>2 PROPERTIES<br>AVAILABLE NOW</h2>
       </div>
-
-      <!-- Property Details -->
-      <div class="listing-details reveal">
-        <div class="listing-address">
-          <h3>107 Palmer Ln</h3>
-          <p>Saratoga Springs, UT 84045</p>
-          <p class="listing-mls">MLS# 2144295 · Fairway Townhomes at TalonsCove</p>
-        </div>
-
-        <div class="listing-specs">
-          <div class="listing-spec"><span>4</span><small>Beds</small></div>
-          <div class="listing-spec"><span>2+2</span><small>Baths</small></div>
-          <div class="listing-spec"><span>2,450</span><small>Sq Ft</small></div>
-          <div class="listing-spec"><span>2-Car</span><small>Garage</small></div>
-          <div class="listing-spec"><span>2026</span><small>Built</small></div>
-        </div>
-
-        <p class="listing-desc">Brand-new three-story end-unit luxury townhome on TalonsCove Golf Course, moments from Utah Lake. Builder-fresh construction with high-end finishes throughout — open-concept living, floor-to-ceiling windows, gas fireplace, and views of the lake, mountains, and valley.</p>
-
-        <ul class="listing-features">
-          <li>Gourmet kitchen — quartz countertops, semi-custom soft-close cabinetry, gas range</li>
-          <li>Second-floor open concept: kitchen, dining & living with floor-to-ceiling windows</li>
-          <li>Primary suite + 3 additional bedrooms / flex room</li>
-          <li>8-ft doors, custom lighting, tankless water heater, smart thermostat</li>
-          <li>2-car garage — epoxy floors, aluminum-glass door, security camera</li>
-          <li>Lake, mountain & valley views — right on the golf course</li>
-        </ul>
-
-        <div class="listing-hoa">
-          <p class="hoa-label">HOA Amenities · $250/mo</p>
-          <div class="hoa-tags">
-            <span>Natural Hot Springs Pool</span>
-            <span>Second Outdoor Pool</span>
-            <span>Two Fitness Centers</span>
-            <span>Two Clubhouses</span>
-            <span>Private Marina</span>
-            <span>Boat Dock on Utah Lake</span>
-            <span>Walking & Biking Trails</span>
-            <span>Pets Welcome</span>
-          </div>
-        </div>
-
-        <div class="listing-ctas">
-          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
-          <a href="https://utahrealestate.com/2144295" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
-        </div>
-      </div>
+      <a href="listings.html" class="teaser-view-all">View All Listings &rarr;</a>
     </div>
-
-    <!-- Cinematic Listing Video -->
-    <div class="listing-video-wrap reveal">
-      <p class="video-eyebrow">Cinematic Listing Tour</p>
-      <h3>107 Palmer Ln — Full Walkthrough</h3>
-      <video controls preload="none" poster="listings/107-palmer-ln/exterior-1.jpg">
-        <source src="listings/107-palmer-ln/listing-video.mp4" type="video/mp4">
-      </video>
+    <div class="teaser-grid">
+      <a href="listings.html" class="teaser-card reveal">
+        <div class="teaser-photo">
+          <img src="listings/107-palmer-ln/exterior-1.jpg" alt="107 Palmer Ln">
+          <span class="teaser-badge">Active</span>
+          <span class="teaser-price">$539,000</span>
+        </div>
+        <div class="teaser-body">
+          <div class="teaser-address">
+            <h4>107 Palmer Ln</h4>
+            <p>Saratoga Springs, UT 84045</p>
+          </div>
+          <div class="teaser-specs">
+            <div class="teaser-spec"><strong>4</strong>Beds</div>
+            <div class="teaser-spec"><strong>2+2</strong>Baths</div>
+            <div class="teaser-spec"><strong>2,450</strong>Sq Ft</div>
+            <div class="teaser-spec"><strong>2026</strong>Built</div>
+          </div>
+          <span class="teaser-cta">View Full Listing</span>
+        </div>
+      </a>
+      <a href="listings.html" class="teaser-card reveal">
+        <div class="teaser-photo">
+          <img src="listings/78-e-watson-dr/exterior-1.jpg" alt="78 E Watson Dr">
+          <span class="teaser-badge">Active</span>
+          <span class="teaser-price">$739,000</span>
+        </div>
+        <div class="teaser-body">
+          <div class="teaser-address">
+            <h4>78 E Watson Dr</h4>
+            <p>Saratoga Springs, UT 84045</p>
+          </div>
+          <div class="teaser-specs">
+            <div class="teaser-spec"><strong>4</strong>Beds</div>
+            <div class="teaser-spec"><strong>3+1</strong>Baths</div>
+            <div class="teaser-spec"><strong>3,153</strong>Sq Ft</div>
+            <div class="teaser-spec"><strong>2026</strong>Built</div>
+          </div>
+          <span class="teaser-cta">View Full Listing</span>
+        </div>
+      </a>
     </div>
-
-    <hr class="listing-divider">
-
-    <!-- Listing 02 -->
-    <p class="listing-num reveal">02</p>
-    <div class="listing-card">
-      <!-- Photo Gallery -->
-      <div class="listing-gallery reveal">
-        <div class="gallery-main">
-          <span class="listing-badge">Active</span>
-          <img id="gallery-main-2" src="listings/78-e-watson-dr/exterior-1.jpg" alt="78 E Watson Dr — Front Exterior">
-          <div class="listing-price-tag">$739,000</div>
-        </div>
-        <div class="gallery-thumbs">
-          <div class="gallery-thumb active" onclick="swapPhoto2(this,'listings/78-e-watson-dr/exterior-1.jpg','Front Exterior')">
-            <img src="listings/78-e-watson-dr/exterior-1.jpg" alt="Front Exterior">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/aerial-1.jpg','Aerial View')">
-            <img src="listings/78-e-watson-dr/aerial-1.jpg" alt="Aerial View">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/aerial-twilight.jpg','Aerial Twilight')">
-            <img src="listings/78-e-watson-dr/aerial-twilight.jpg" alt="Aerial Twilight">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/view.jpg','Golf Course & Lake View')">
-            <img src="listings/78-e-watson-dr/view.jpg" alt="Golf Course & Lake View">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/living-room.jpg','Living Room')">
-            <img src="listings/78-e-watson-dr/living-room.jpg" alt="Living Room">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/kitchen.jpg','Kitchen')">
-            <img src="listings/78-e-watson-dr/kitchen.jpg" alt="Kitchen">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/primary-bedroom.jpg','Primary Bedroom')">
-            <img src="listings/78-e-watson-dr/primary-bedroom.jpg" alt="Primary Bedroom">
-          </div>
-          <div class="gallery-thumb" onclick="swapPhoto2(this,'listings/78-e-watson-dr/pool.jpg','Community Pool')">
-            <img src="listings/78-e-watson-dr/pool.jpg" alt="Community Pool">
-          </div>
-        </div>
-      </div>
-
-      <!-- Property Details -->
-      <div class="listing-details reveal">
-        <div class="listing-address">
-          <h3>78 E Watson Dr</h3>
-          <p>Saratoga Springs, UT 84045</p>
-          <p class="listing-mls">MLS# 2144296 · TalonsCove Golf Community</p>
-        </div>
-
-        <div class="listing-specs">
-          <div class="listing-spec"><span>4</span><small>Beds</small></div>
-          <div class="listing-spec"><span>3+1</span><small>Baths</small></div>
-          <div class="listing-spec"><span>3,153</span><small>Sq Ft</small></div>
-          <div class="listing-spec"><span>2-Car</span><small>Garage</small></div>
-          <div class="listing-spec"><span>2026</span><small>Built</small></div>
-        </div>
-
-        <p class="listing-desc">A larger three-story luxury townhome with a fully finished basement, situated on TalonsCove Golf Course minutes from Utah Lake. More space, more flexibility — the finished lower level adds a full bedroom and bathroom perfect for guests, a gym, or a media room.</p>
-
-        <ul class="listing-features">
-          <li>Fully finished basement — bedroom, bathroom, and flex space</li>
-          <li>Open-concept second floor: kitchen, dining & living with floor-to-ceiling windows</li>
-          <li>Primary suite with private balcony, sitting area & walk-in closet</li>
-          <li>Quartz countertops, semi-custom soft-close cabinetry, gas range</li>
-          <li>8-ft doors, custom lighting, tankless water heater, water softener plumbing</li>
-          <li>Refrigerator, range, microwave & range hood included</li>
-          <li>Lake, mountain & valley views — adjacent to golf course</li>
-        </ul>
-
-        <div class="listing-hoa">
-          <p class="hoa-label">HOA Amenities · $250/mo</p>
-          <div class="hoa-tags">
-            <span>Natural Hot Springs Pool</span>
-            <span>Second Outdoor Pool</span>
-            <span>Two Fitness Centers</span>
-            <span>Two Clubhouses</span>
-            <span>Private Marina</span>
-            <span>Boat Dock on Utah Lake</span>
-            <span>Game Room</span>
-            <span>Picnic Pavilion</span>
-          </div>
-        </div>
-
-        <div class="listing-ctas">
-          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
-          <a href="https://utahrealestate.com/2144296" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
-        </div>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -657,22 +481,6 @@ mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
   mobileNav.classList.remove('open');
   document.body.style.overflow = '';
 }));
-// ── Gallery photo swap ──
-function swapPhoto(thumb, src, alt) {
-  const main = document.getElementById('gallery-main');
-  main.style.opacity = '0';
-  setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
-  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
-  thumb.classList.add('active');
-}
-function swapPhoto2(thumb, src, alt) {
-  const main = document.getElementById('gallery-main-2');
-  main.style.opacity = '0';
-  setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
-  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
-  thumb.classList.add('active');
-}
-
 // ── Stat counter animation ──
 document.querySelectorAll('[data-count]').forEach(el => {
   const target = +el.dataset.count;
