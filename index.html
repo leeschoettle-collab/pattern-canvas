@@ -833,12 +833,12 @@
     </div>
     <form class="contact-form reveal" onsubmit="handleForm(event)">
       <div class="form-row">
-        <input type="text" placeholder="First Name" required />
-        <input type="text" placeholder="Last Name" required />
+        <input type="text" name="first_name" placeholder="First Name" required />
+        <input type="text" name="last_name" placeholder="Last Name" required />
       </div>
-      <input type="email" placeholder="Email Address" required />
-      <input type="tel" placeholder="Phone Number" />
-      <select>
+      <input type="email" name="email" placeholder="Email Address" required />
+      <input type="tel" name="phone" placeholder="Phone Number" />
+      <select name="interest">
         <option value="" disabled selected>I'm interested in...</option>
         <option>Buying a Home</option>
         <option>Selling a Home</option>
@@ -846,7 +846,7 @@
         <option>Development Partnership</option>
         <option>Other</option>
       </select>
-      <textarea placeholder="Tell me about your goals..."></textarea>
+      <textarea name="message" placeholder="Tell me about your goals..."></textarea>
       <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Send Message</button>
     </form>
   </div>
@@ -987,16 +987,39 @@ document.querySelectorAll('.stat-number[data-count]').forEach(el => {
 // ── Contact form ──
 function handleForm(e) {
   e.preventDefault();
-  const btn = e.target.querySelector('button[type=submit]');
-  btn.textContent = 'Message Sent ✓';
-  btn.style.background = 'var(--gold)';
-  btn.style.color = '#000';
-  setTimeout(() => {
-    btn.textContent = 'Send Message';
-    btn.style.background = '';
-    btn.style.color = '';
-    e.target.reset();
-  }, 3000);
+  const form = e.target;
+  const btn = form.querySelector('button[type=submit]');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  fetch('https://formspree.io/f/xeeyavna', {
+    method: 'POST',
+    body: new FormData(form),
+    headers: { Accept: 'application/json' }
+  })
+  .then(res => {
+    if (res.ok) {
+      btn.textContent = 'Message Sent ✓';
+      btn.style.background = 'var(--gold)';
+      btn.style.color = '#000';
+      form.reset();
+      setTimeout(() => {
+        btn.textContent = 'Send Message';
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.disabled = false;
+      }, 4000);
+    } else {
+      btn.textContent = 'Something went wrong — try again';
+      btn.style.background = '#c0392b';
+      btn.disabled = false;
+    }
+  })
+  .catch(() => {
+    btn.textContent = 'Network error — try again';
+    btn.style.background = '#c0392b';
+    btn.disabled = false;
+  });
 }
 </script>
 </body>
