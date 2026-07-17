@@ -212,7 +212,7 @@
     .teaser-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.4rem,4vw,3.2rem); letter-spacing: 0.03em; line-height: 0.95; }
     .teaser-view-all { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-decoration: none; white-space: nowrap; transition: opacity 0.2s; padding-bottom: 4px; border-bottom: 1px solid rgba(201,168,76,0.4); }
     .teaser-view-all:hover { opacity: 0.75; }
-    .teaser-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .teaser-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     .teaser-card { background: rgba(8,13,26,0.6); border: 1px solid rgba(45,53,208,0.15); border-radius: 8px; overflow: hidden; transition: border-color 0.3s, transform 0.3s; text-decoration: none; display: block; }
     .teaser-card:hover { border-color: rgba(45,53,208,0.45); transform: translateY(-4px); }
     .teaser-photo { position: relative; aspect-ratio: 16/9; overflow: hidden; }
@@ -399,7 +399,7 @@
     <div class="teaser-header reveal">
       <div>
         <p class="section-label">Active Listings</p>
-        <h2>2 PROPERTIES<br>AVAILABLE NOW</h2>
+        <h2>3 PROPERTIES<br>AVAILABLE NOW</h2>
       </div>
       <a href="listings.html" class="teaser-view-all">View All Listings &rarr;</a>
     </div>
@@ -439,6 +439,26 @@
             <div class="teaser-spec"><strong>4</strong>Beds</div>
             <div class="teaser-spec"><strong>3+1</strong>Baths</div>
             <div class="teaser-spec"><strong>3,153</strong>Sq Ft</div>
+            <div class="teaser-spec"><strong>2026</strong>Built</div>
+          </div>
+          <span class="teaser-cta">View Full Listing</span>
+        </div>
+      </a>
+      <a href="listings.html" class="teaser-card reveal">
+        <div class="teaser-photo">
+          <img src="listings/133-watson-dr/exterior-1.jpg" alt="133 Watson Dr">
+          <span class="teaser-badge">Active</span>
+          <span class="teaser-price">$469,000</span>
+        </div>
+        <div class="teaser-body">
+          <div class="teaser-address">
+            <h4>133 Watson Dr</h4>
+            <p>Saratoga Springs, UT 84045</p>
+          </div>
+          <div class="teaser-specs">
+            <div class="teaser-spec"><strong>2</strong>Beds</div>
+            <div class="teaser-spec"><strong>2+1</strong>Baths</div>
+            <div class="teaser-spec"><strong>1,849</strong>Sq Ft</div>
             <div class="teaser-spec"><strong>2026</strong>Built</div>
           </div>
           <span class="teaser-cta">View Full Listing</span>

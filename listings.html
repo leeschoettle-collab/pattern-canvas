@@ -207,7 +207,7 @@
   <div class="hero-content">
     <p class="hero-eyebrow">LS Realty · Saratoga Springs, UT</p>
     <h1 class="hero-title">AVAILABLE<br><span class="gold">LISTINGS</span></h1>
-    <span class="hero-count">2 Active Properties</span>
+    <span class="hero-count">3 Active Properties</span>
   </div>
 </section>
 
@@ -393,6 +393,95 @@
       </video>
     </div>
 
+    <hr class="listing-divider">
+
+    <!-- Listing 03 -->
+    <div class="listing-num">03</div>
+    <div class="listing-card reveal">
+      <div class="listing-gallery">
+        <div class="gallery-main">
+          <span class="listing-badge">Active</span>
+          <img id="gallery-main-3" src="listings/133-watson-dr/exterior-1.jpg" alt="133 Watson Dr — Front Exterior">
+          <span class="listing-price-tag">$469,000</span>
+        </div>
+        <div class="gallery-thumbs">
+          <div class="gallery-thumb active" onclick="swapPhoto3(this,'listings/133-watson-dr/exterior-1.jpg','Front Exterior')">
+            <img src="listings/133-watson-dr/exterior-1.jpg" alt="Front Exterior">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/exterior-twilight.jpg','Twilight Exterior')">
+            <img src="listings/133-watson-dr/exterior-twilight.jpg" alt="Twilight Exterior">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/living-room-1.jpg','Living Room')">
+            <img src="listings/133-watson-dr/living-room-1.jpg" alt="Living Room">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/living-room-2.jpg','Living Room Views')">
+            <img src="listings/133-watson-dr/living-room-2.jpg" alt="Living Room Views">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/kitchen.jpg','Kitchen')">
+            <img src="listings/133-watson-dr/kitchen.jpg" alt="Kitchen">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/primary-bedroom.jpg','Primary Bedroom')">
+            <img src="listings/133-watson-dr/primary-bedroom.jpg" alt="Primary Bedroom">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/pool.jpg','Community Pool')">
+            <img src="listings/133-watson-dr/pool.jpg" alt="Community Pool">
+          </div>
+          <div class="gallery-thumb" onclick="swapPhoto3(this,'listings/133-watson-dr/clubhouse.jpg','Clubhouse')">
+            <img src="listings/133-watson-dr/clubhouse.jpg" alt="Clubhouse">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="listing-address">
+          <h3>133 Watson Dr</h3>
+          <p>Saratoga Springs, UT 84045</p>
+          <p class="listing-mls">MLS# 2144297</p>
+        </div>
+        <div class="listing-specs">
+          <div class="listing-spec"><span>2</span><small>Beds</small></div>
+          <div class="listing-spec"><span>2+1</span><small>Baths</small></div>
+          <div class="listing-spec"><span>1,849</span><small>Sq Ft</small></div>
+          <div class="listing-spec"><span>2-Car</span><small>Garage</small></div>
+          <div class="listing-spec"><span>2026</span><small>Built</small></div>
+        </div>
+        <p class="listing-desc">Three-story luxury townhome perched on the TalonsCove Golf Course with sweeping lake, mountain, and valley views from nearly every room. Open-concept second floor with floor-to-ceiling windows on both ends. Premium upgrades throughout in a resort-style HOA community minutes from Utah Lake.</p>
+        <ul class="listing-features">
+          <li>Semi-custom soft-close cabinetry &amp; 3cm quartz countertops</li>
+          <li>8-foot doors, custom lighting &amp; extra can lighting throughout</li>
+          <li>Oversized staircase with statement window for extra natural light</li>
+          <li>Tankless water heater &amp; plumbing for water softener</li>
+          <li>Epoxy garage with aluminum/glass door, lighting &amp; security camera</li>
+          <li>In-wall internet access points throughout</li>
+        </ul>
+        <div class="listing-hoa">
+          <p class="hoa-label">HOA Amenities · $250/mo</p>
+          <div class="hoa-tags">
+            <span>Hot-Springs Heated Pool</span>
+            <span>Second Outdoor Pool</span>
+            <span>Two Clubhouses</span>
+            <span>Private Boat Dock Marina</span>
+            <span>TalonsCove Golf Adjacent</span>
+            <span>Sand Volleyball</span>
+            <span>Fitness Center</span>
+            <span>Snow Removal &amp; Landscaping</span>
+            <span>Pets Permitted</span>
+          </div>
+        </div>
+        <div class="listing-ctas">
+          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <a href="https://utahrealestate.com/2144297" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="listing-video-wrap reveal">
+      <p class="video-eyebrow">Cinematic Listing Reel</p>
+      <h3>133 WATSON DR — PROPERTY TOUR</h3>
+      <video controls preload="none" poster="listings/133-watson-dr/exterior-twilight.jpg">
+        <source src="listings/133-watson-dr/listing-video.mp4" type="video/mp4">
+      </video>
+    </div>
+
   </div>
 </section>
 
@@ -439,6 +528,13 @@ function swapPhoto(thumb, src, alt) {
 }
 function swapPhoto2(thumb, src, alt) {
   const main = document.getElementById('gallery-main-2');
+  main.style.opacity = '0';
+  setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
+  thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+function swapPhoto3(thumb, src, alt) {
+  const main = document.getElementById('gallery-main-3');
   main.style.opacity = '0';
   setTimeout(() => { main.src = src; main.alt = alt; main.style.opacity = '1'; }, 200);
   thumb.closest('.gallery-thumbs').querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
