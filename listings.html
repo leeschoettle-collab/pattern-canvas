@@ -143,6 +143,54 @@
 
     .reveal { opacity: 0; transform: translateY(28px); }
 
+    /* ── Showing Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(4,7,16,0.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--navy-mid); border: 1px solid rgba(45,53,208,0.25);
+      border-radius: 10px; padding: 48px 44px; width: 100%; max-width: 480px;
+      position: relative; transform: translateY(16px); transition: transform 0.3s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute; top: 18px; right: 20px; background: none; border: none;
+      color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; padding: 4px 8px;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--white); }
+    .modal-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .modal-property { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid rgba(45,53,208,0.15); }
+    .modal-form { display: flex; flex-direction: column; gap: 12px; }
+    .modal-form input {
+      background: rgba(8,13,26,0.7); border: 1px solid rgba(45,53,208,0.2);
+      border-radius: 5px; padding: 13px 16px; color: var(--white);
+      font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
+      transition: border-color 0.2s; width: 100%;
+    }
+    .modal-form input::placeholder { color: rgba(255,255,255,0.28); }
+    .modal-form input:focus { border-color: var(--blue); }
+    .modal-form .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-submit {
+      width: 100%; padding: 14px; background: var(--blue); color: var(--white);
+      border: none; border-radius: 5px; font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s; margin-top: 4px;
+    }
+    .modal-submit:hover:not(:disabled) { background: var(--blue-light); }
+    .modal-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+    .modal-note { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 10px; }
+
+    @media (max-width: 520px) {
+      .modal { padding: 36px 24px; }
+      .modal-form .modal-row { grid-template-columns: 1fr; }
+    }
+
     /* Hamburger */
     .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; z-index: 201; }
     .nav-hamburger span { display: block; width: 100%; height: 2px; background: var(--white); border-radius: 2px; transition: transform 0.3s, opacity 0.3s; }
@@ -288,7 +336,7 @@
           </div>
         </div>
         <div class="listing-ctas">
-          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <button onclick="openShowing('107 Palmer Ln')" class="btn btn-primary">Schedule a Showing</button>
           <a href="https://utahrealestate.com/2144295" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
         </div>
       </div>
@@ -379,7 +427,7 @@
           </div>
         </div>
         <div class="listing-ctas">
-          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <button onclick="openShowing('78 E Watson Dr')" class="btn btn-primary">Schedule a Showing</button>
           <a href="https://utahrealestate.com/2144296" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
         </div>
       </div>
@@ -468,7 +516,7 @@
           </div>
         </div>
         <div class="listing-ctas">
-          <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+          <button onclick="openShowing('133 Watson Dr')" class="btn btn-primary">Schedule a Showing</button>
           <a href="https://utahrealestate.com/2144297" class="btn btn-gold" target="_blank" rel="noopener">View on MLS</a>
         </div>
       </div>
@@ -491,7 +539,7 @@
   <h2 class="reveal">INTERESTED IN<br>ONE OF THESE <span class="gold">PROPERTIES?</span></h2>
   <p class="reveal">Lee represents both buyers and sellers. Whether you want to schedule a private showing or have questions about the community, reach out directly.</p>
   <div class="cta-btns reveal">
-    <a href="index.html#contact" class="btn btn-primary">Schedule a Showing</a>
+    <button onclick="openShowing('')" class="btn btn-primary">Schedule a Showing</button>
     <a href="buy-sell.html" class="btn btn-gold">About Lee's Approach</a>
   </div>
 </section>
@@ -548,5 +596,26 @@ gsap.utils.toArray('.reveal').forEach(el => {
   });
 });
 </script>
+
+<!-- Showing Request Modal -->
+<div class="modal-overlay" id="showingModal" onclick="closeShowingOnBackdrop(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <button class="modal-close" onclick="closeShowing()" aria-label="Close">&times;</button>
+    <p class="modal-eyebrow">LS Realty</p>
+    <h3 id="modal-title">SCHEDULE A SHOWING</h3>
+    <p class="modal-property" id="modal-property">Saratoga Springs, UT</p>
+    <form class="modal-form" id="showingForm" onsubmit="submitShowing(event)">
+      <input type="hidden" name="property" id="showing-property-field">
+      <div class="modal-row">
+        <input type="text" name="first_name" placeholder="First Name" required>
+        <input type="text" name="last_name" placeholder="Last Name" required>
+      </div>
+      <input type="tel" name="phone" placeholder="Phone Number" required>
+      <input type="email" name="email" placeholder="Email Address" required>
+      <button type="submit" class="modal-submit" id="showing-btn">Request a Showing</button>
+      <p class="modal-note">Lee will reach out within 24 hours to confirm.</p>
+    </form>
+  </div>
+</div>
 </body>
 </html>
