@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>FlipScope Grabber — Options</title>
+<style>
+  body { font: 14px -apple-system, Arial, sans-serif; background: #0f1117; color: #e0e0e0; padding: 24px; max-width: 460px; }
+  h1 { font-size: 1.05rem; color: #fff; margin: 0 0 4px; }
+  p { color: #94a3b8; line-height: 1.6; font-size: 0.85rem; }
+  label { display: block; font-size: 0.75rem; color: #64748b; margin: 16px 0 5px; }
+  input { width: 100%; padding: 9px 11px; background: #1a2035; border: 1px solid #2a3550; border-radius: 8px; color: #e0e0e0; font-size: 0.9rem; }
+  button { margin-top: 14px; padding: 9px 18px; background: #3b82f6; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; }
+  .ok { color: #4ade80; font-size: 0.8rem; margin-left: 10px; }
+  code { background: #1a2035; padding: 1px 5px; border-radius: 4px; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+  <h1>FlipScope Grabber</h1>
+  <p>Where should the 📸 button send grabbed listings?</p>
+  <label>FlipScope URL</label>
+  <input id="url" type="url" placeholder="https://leeschoettle.com/flipscope.html">
+  <p style="margin-top:6px;">Default is <code>https://leeschoettle.com/flipscope.html</code>. If you run FlipScope locally, set it to <code>http://localhost:3456/flipscope.html</code>.</p>
+  <button id="save">Save</button><span id="status" class="ok"></span>
+<script>
+  const DEF = "https://leeschoettle.com/flipscope.html";
+  chrome.storage.sync.get("flipscopeUrl", s => { document.getElementById("url").value = (s && s.flipscopeUrl) || DEF; });
+  document.getElementById("save").onclick = () => {
+    let v = document.getElementById("url").value.trim() || DEF;
+    chrome.storage.sync.set({ flipscopeUrl: v }, () => {
+      const st = document.getElementById("status");
+      st.textContent = "Saved";
+      setTimeout(() => st.textContent = "", 1500);
+    });
+  };
+</script>
+</body>
+</html>
