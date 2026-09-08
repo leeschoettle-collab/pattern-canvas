@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlipScope</title>
+<meta name="description" content="FlipScope — free fix &amp; flip deal analyzer. Photo-by-photo repair checklist with ZIP-adjusted costs, ARV, and full-underwriting MAO. Runs entirely in your browser.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="FlipScope — Fix &amp; Flip Deal Analyzer">
+<meta property="og:description" content="Free rehab + deal calculator for house flippers. Repair checklist with regional costs, ARV, MAO. Nothing leaves your browser.">
+<meta property="og:type" content="website">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, Arial, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+  a { color: #60a5fa; text-decoration: none; }
+  button { font-family: inherit; }
+
+  .header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom: 1px solid #2a3040; padding: 13px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .header h1 { font-size: 1.2rem; font-weight: 700; color: #fff; }
+  .header h1 span { color: #3b82f6; }
+  .header-right { display: flex; align-items: center; gap: 12px; font-size: 0.78rem; }
+  .icon-btn { background: #1a2035; border: 1px solid #2a3550; border-radius: 8px; padding: 7px 11px; cursor: pointer; color: #94a3b8; font-size: 0.76rem; transition: border-color .15s; }
+  .icon-btn:hover { border-color: #3b82f6; color: #60a5fa; }
+
+  .layout { display: flex; align-items: flex-start; }
+  .sidebar { width: 230px; flex-shrink: 0; border-right: 1px solid #1e2535; min-height: calc(100vh - 52px); padding: 14px 12px; position: sticky; top: 52px; }
+  .sidebar h2 { font-size: 0.66rem; text-transform: uppercase; letter-spacing: .8px; color: #475569; margin-bottom: 10px; }
+  .new-btn { width: 100%; background: #1e3a5f; border: 1px solid #3b82f6; color: #93c5fd; border-radius: 8px; padding: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-bottom: 14px; }
+  .new-btn:hover { background: #254e7a; }
+  .deal-item { padding: 9px 10px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; margin-bottom: 4px; }
+  .deal-item:hover { background: #161b28; }
+  .deal-item.active { background: #17223a; border-color: #2a3550; }
+  .deal-item .di-addr { font-size: 0.8rem; color: #e2e8f0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .deal-item .di-meta { font-size: 0.68rem; color: #64748b; margin-top: 2px; }
+  .deal-item .di-del { float: right; color: #475569; font-size: 0.9rem; }
+  .deal-item .di-del:hover { color: #ef4444; }
+
+  .main { flex: 1; padding: 20px 26px 100px; max-width: 1080px; }
+  .panel { background: #141824; border: 1px solid #1e2535; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+  .panel > h3 { font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .panel > .sub { font-size: 0.72rem; color: #475569; margin-bottom: 14px; }
+  .step-num { background: #1e3a5f; color: #60a5fa; width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  input[type=text], input[type=url], input[type=number], select {
+    background: #0f1117; border: 1px solid #2a3550; border-radius: 8px; color: #e0e0e0;
+    padding: 8px 11px; font-size: 0.82rem; outline: none; width: 100%;
+  }
+  input:focus, select:focus { border-color: #3b82f6; }
+  .btn { background: #3b82f6; color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: #2563eb; }
+  .btn.ghost { background: transparent; border: 1px solid #2a3550; color: #94a3b8; }
+  .btn.ghost:hover { border-color: #3b82f6; color: #60a5fa; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .dropzone { border: 1.5px dashed #2a3550; border-radius: 10px; padding: 22px; text-align: center; color: #475569; font-size: 0.78rem; cursor: pointer; margin-top: 12px; transition: .15s; }
+  .dropzone:hover, .dropzone.drag { border-color: #3b82f6; color: #60a5fa; background: #0f172a; }
+
+  .viewer { position: relative; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 3/2; max-height: 58vh; display: flex; align-items: center; justify-content: center; }
+  .viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .viewer .nav { position: absolute; top: 0; bottom: 0; width: 46%; cursor: pointer; display: flex; align-items: center; opacity: 0; transition: .15s; font-size: 2rem; color: #fff; text-shadow: 0 1px 6px #000; }
+  .viewer:hover .nav { opacity: .85; }
+  .viewer .nav.prev { left: 0; justify-content: flex-start; padding-left: 14px; }
+  .viewer .nav.next { right: 0; justify-content: flex-end; padding-right: 14px; }
+  .viewer .counter { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.7); font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; color: #cbd5e1; }
+  .viewer .rmphoto { position: absolute; top: 8px; right: 10px; background: rgba(0,0,0,.6); color: #fca5a5; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.7rem; cursor: pointer; }
+  .thumbs { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; }
+  .thumbs img { height: 52px; width: 74px; object-fit: cover; border-radius: 5px; cursor: pointer; opacity: .5; border: 2px solid transparent; flex-shrink: 0; }
+  .thumbs img.active { opacity: 1; border-color: #3b82f6; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .fld label { display: block; font-size: 0.68rem; color: #64748b; margin-bottom: 4px; }
+  .fld .srctag { font-size: 0.6rem; color: #3b82f6; margin-left: 5px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* Checklist */
+  .cl-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 12px; }
+  .cl-sum-card { background: #1a2035; border: 1px solid #2a3550; border-radius: 10px; padding: 11px 13px; }
+  .cl-sum-card .label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: .6px; color: #64748b; margin-bottom: 3px; }
+  .cl-sum-card .val { font-size: 1.15rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+  .cl-filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cl-chip { font-size: 0.7rem; padding: 5px 11px; border-radius: 20px; border: 1px solid #2a3550; background: #131722; color: #94a3b8; cursor: pointer; }
+  .cl-chip.on { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
+
+  .clcat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: .8px; color: #64748b; margin: 16px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #1e2535; }
+  .clcat:first-child { margin-top: 0; }
+  .cl-row { padding: 9px 0; border-bottom: 1px solid #141a26; }
+  .cl-row.on { background: #10151f; margin: 0 -8px; padding: 9px 8px; border-radius: 8px; border-bottom-color: transparent; }
+  .cl-row-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .cl-label { font-size: 0.82rem; color: #e2e8f0; font-weight: 600; }
+  .cl-verify { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #fbbf24; border: 1px solid #59421a; border-radius: 4px; padding: 1px 5px; }
+  .cl-tiers { display: flex; gap: 5px; flex-wrap: wrap; margin: 7px 0 0; }
+  .cl-tier { font-size: 0.7rem; padding: 4px 9px; border-radius: 6px; border: 1px solid #2a3550; background: #131722; color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; line-height: 1.35; }
+  .cl-tier:hover { border-color: #3b82f6; }
+  .cl-tier.on { background: #1e3a5f; border-color: #3b82f6; color: #dbeafe; }
+  .cl-tier b { font-size: 0.64rem; font-weight: 700; opacity: .85; }
+  .cl-tier.none-tier { color: #64748b; }
+  .cl-detail { display: flex; gap: 8px; margin-top: 7px; align-items: center; flex-wrap: wrap; }
+  .cl-detail .amt-wrap { display: flex; align-items: center; gap: 4px; background: #0f1117; border: 1px solid #2a3550; border-radius: 8px; padding: 0 9px; }
+  .cl-detail .amt-wrap span { color: #64748b; font-size: 0.8rem; }
+  .cl-detail input.amt { width: 90px; border: none; background: transparent; padding: 7px 0; }
+  .cl-detail input.note { flex: 1; min-width: 160px; font-size: 0.76rem; padding: 6px 9px; }
+  .cl-detail input.qty { width: 54px; }
+  .cl-detail .qty-lbl { font-size: 0.68rem; color: #64748b; }
+
+  .verify-todo { margin-top: 14px; background: #1a1607; border: 1px solid #59421a; border-radius: 10px; padding: 12px 14px; }
+  .verify-todo h4 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .6px; color: #fbbf24; margin-bottom: 6px; }
+  .verify-todo p { font-size: 0.76rem; color: #d6b781; line-height: 1.7; }
+  .verify-todo .vt-item { display: inline-block; background: #2a2109; border-radius: 5px; padding: 2px 8px; margin: 3px 4px 0 0; font-size: 0.73rem; }
+
+  .addcustom { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  .bignum { font-size: 1.5rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+  .bignum.green { color: #4ade80; } .bignum.red { color: #f87171; }
+  .kv { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 6px 0; border-bottom: 1px solid #161b28; }
+  .kv .k { color: #94a3b8; } .kv .v { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .result-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; margin: 12px 0; }
+  .rc { background: #1a2035; border: 1px solid #2a3550; border-radius: 10px; padding: 12px 14px; }
+  .rc .label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: .6px; color: #64748b; margin-bottom: 4px; }
+
+  .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid #2a3550; border-top-color: #3b82f6; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -3px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .msg { font-size: 0.76rem; padding: 9px 12px; border-radius: 8px; margin-top: 10px; }
+  .msg.err { background: #2a1215; color: #fca5a5; border: 1px solid #4c1d1d; }
+  .msg.info { background: #14233a; color: #93c5fd; border: 1px solid #1e3a5f; }
+  .hidden { display: none !important; }
+
+  .comps-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; margin-top: 10px; }
+  .comps-table th { text-align: left; color: #475569; font-size: 0.62rem; text-transform: uppercase; padding: 5px 6px; border-bottom: 1px solid #1e2535; }
+  .comps-table td { padding: 6px; border-bottom: 1px solid #161b28; }
+
+  @media print {
+    .sidebar, .header, .dropzone, .btn, .viewer .nav, .thumbs, .rmphoto, #srcPanel, .cl-filters, .addcustom, .cl-tiers { display: none !important; }
+    body { background: #fff; color: #000; }
+    .panel { border-color: #ccc; break-inside: avoid; }
+    .bignum, .panel > h3, .cl-label { color: #000; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Flip<span>Scope</span></h1>
+  <div class="header-right">
+    <a href="/deal-dashboard.html" data-local-only class="hidden">← Deal Dashboard</a>
+    <a href="#" onclick="$('aboutBox').classList.toggle('hidden');return false;">About</a>
+    <button class="icon-btn" onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <button class="new-btn" onclick="newDeal()">+ New Analysis</button>
+    <h2>Saved Deals</h2>
+    <div id="dealList"></div>
+  </div>
+
+  <div class="main">
+    <div id="aboutBox" class="panel hidden" style="border-color:#1e3a5f;background:#0e1a2c;">
+      <h3>What FlipScope is</h3>
+      <div class="sub" style="line-height:1.7;color:#94a3b8;">
+        A free deal analyzer for fix-and-flip investors. Load a property's photos, click through them while you build a
+        line-by-line repair scope with costs adjusted for the local market, then pull it all into an ARV / max-allowable-offer
+        calculation with buy-side closing, holding, selling costs and your target profit.
+        <br><br>
+        <b>Everything runs in your browser.</b> Photos, numbers and saved deals stay on your device (nothing is uploaded).
+        Cost presets are calibrated for Utah and adjustable everywhere — plug in your own trade bids as you get them.
+        <br><br>
+        Built by <a href="https://leeschoettle.com" target="_blank">Lee Schoettle</a>, Utah wholesaler &amp; flipper.
+      </div>
+    </div>
+
+    <!-- 1. SOURCE -->
+    <div class="panel" id="srcPanel">
+      <h3><span class="step-num">1</span> Add the property</h3>
+      <div class="sub">Grab photos from a listing, or upload your own. Everything stays in your browser.</div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">A · Grab bookmarklet &nbsp;<span style="color:#475569;font-weight:400;">— Redfin, Homes.com, Trulia, most MLS sites</span></div>
+          <div style="font-size:0.73rem;color:#94a3b8;line-height:1.7;">
+            Drag this to your bookmarks bar → <a id="bmk" class="btn" style="padding:4px 11px;display:inline-block;" href="#">📸 Grab for FlipScope</a><br>
+            Then open a listing and click it — photos &amp; property facts land here automatically.
+            <a href="#" onclick="showBmkHelp();return false;" style="font-size:0.7rem;">how it works</a>
+          </div>
+          <div id="bmkHelp" class="hidden" style="font-size:0.72rem;color:#64748b;line-height:1.7;margin-top:8px;border-left:2px solid #2a3550;padding-left:10px;">
+            The button is a bookmarklet — a tiny script that reads the photo URLs and details off the page you're viewing, in your own browser, and opens FlipScope with everything filled in. Nothing is sent to a server. Zillow and Realtor.com block bookmarklets with a strict security policy — for those, use the extension below or just upload photos.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">B · Chrome extension &nbsp;<span style="color:#4ade80;font-weight:400;">— adds Zillow + Realtor.com</span></div>
+          <div style="font-size:0.73rem;color:#94a3b8;line-height:1.7;">
+            <a href="flip-grabber-extension.zip" download>Download the extension</a>, unzip it, then in
+            <b>chrome://extensions</b> turn on <b>Developer mode</b> → <b>Load unpacked</b> → pick the unzipped folder.
+            Click its 📸 icon on any listing.
+          </div>
+        </div>
+
+        <div data-local-only class="hidden">
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">D · Paste a link &nbsp;<span style="color:#475569;font-weight:400;">— your local FlipScope server</span></div>
+          <div class="row">
+            <input type="url" id="urlInput" placeholder="https://www.redfin.com/UT/..." style="flex:1; min-width:240px;">
+            <button class="btn" id="fetchBtn" onclick="fetchListing()">Fetch listing</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">C · Upload photos &nbsp;<span style="color:#475569;font-weight:400;">— walkthrough shots, screenshots, anything</span></div>
+          <div class="dropzone" id="dropzone" style="margin-top:0;">Drop photos here or click to upload &nbsp;·&nbsp; JPG / PNG / WEBP</div>
+          <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
+        </div>
+      </div>
+      <div id="srcMsg"></div>
+    </div>
+
+    <!-- 2. PHOTOS -->
+    <div class="panel hidden" id="photoPanel">
+      <h3><span class="step-num">2</span> Photos <span id="photoCount" class="sub" style="margin:0;"></span></h3>
+      <div class="viewer" id="viewer">
+        <div class="nav prev" onclick="stepPhoto(-1)">‹</div>
+        <div class="nav next" onclick="stepPhoto(1)">›</div>
+        <button class="rmphoto" onclick="removeCurrentPhoto()">Remove</button>
+        <div class="counter" id="viewerCounter"></div>
+        <img id="viewerImg" alt="">
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="sub" style="margin:10px 0 0;">Click through the photos as you fill out the repair checklist below.</div>
+    </div>
+
+    <!-- 3. FACTS -->
+    <div class="panel hidden" id="factsPanel">
+      <h3><span class="step-num">3</span> Property facts</h3>
+      <div class="sub">Auto-filled values are best guesses from the listing page — <b>check every field</b> and correct anything wrong. These drive the sqft-based repair costs and the comps.</div>
+      <div class="grid2">
+        <div class="fld"><label>Street address <span class="srctag" id="src_address"></span></label><input type="text" id="f_address"></div>
+        <div class="fld"><label>City <span class="srctag" id="src_city"></span></label><input type="text" id="f_city"></div>
+        <div class="fld"><label>State <span class="srctag" id="src_state"></span></label><input type="text" id="f_state" value="UT"></div>
+        <div class="fld"><label>ZIP <span class="srctag" id="src_zip"></span></label><input type="text" id="f_zip"></div>
+        <div class="fld"><label>Beds <span class="srctag" id="src_beds"></span></label><input type="number" id="f_beds" step="1"></div>
+        <div class="fld"><label>Baths <span class="srctag" id="src_baths"></span></label><input type="number" id="f_baths" step="0.5"></div>
+        <div class="fld"><label>Living area (sqft) <span class="srctag" id="src_sqft"></span></label><input type="number" id="f_sqft" step="1"></div>
+        <div class="fld"><label>Year built <span class="srctag" id="src_yearBuilt"></span></label><input type="number" id="f_yearBuilt" step="1"></div>
+        <div class="fld"><label>List / ask price <span class="srctag" id="src_listPrice"></span></label><input type="number" id="f_listPrice" step="1000"></div>
+      </div>
+    </div>
+
+    <!-- 4. REPAIR CHECKLIST -->
+    <div class="panel hidden" id="clPanel">
+      <h3><span class="step-num">4</span> Repair checklist</h3>
+      <div class="sub">Pick a scope level for every item that needs work. Prices are mid-grade flip finishes, adjusted for the property's ZIP. <span style="color:#fbbf24;">VERIFY</span> items usually aren't visible in photos — check them on the walkthrough.</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.74rem;color:#94a3b8;background:#0e1a2c;border:1px solid #1e3a5f;border-radius:8px;padding:8px 12px;margin-bottom:12px;">
+        <span>Regional cost basis:</span>
+        <b id="cf_zip" style="color:#e2e8f0;">—</b>
+        <span id="cf_area" style="color:#64748b;">—</span>
+        <span style="margin-left:auto;">factor&nbsp;×</span>
+        <input type="number" id="cl_costFactor" value="1.00" step="0.01" min="0.5" max="2.5" style="width:64px;padding:4px 6px;font-size:0.8rem;" onchange="editCostFactor(this.value)">
+        <a href="#" onclick="resetCostFactor();return false;" style="font-size:0.7rem;">reset</a>
+        <a href="#" onclick="$('cfHelp').classList.toggle('hidden');return false;" style="font-size:0.7rem;">?</a>
+      </div>
+      <div id="cfHelp" class="hidden" style="font-size:0.71rem;color:#64748b;line-height:1.7;margin:-6px 0 12px;border-left:2px solid #2a3550;padding-left:10px;">
+        Base prices are anchored to the Salt Lake City metro (×1.00). The factor scales every line item up or down for the property's market — e.g. Park City ≈ ×1.40, Utah County ≈ ×0.96, rural ≈ ×0.92. It's a screening estimate; if you have real bids from your local trades, type the factor (or the individual line prices) that matches them.
+      </div>
+      <div class="cl-summary">
+        <div class="cl-sum-card"><div class="label">Line items</div><div class="val" id="cl_subtotal">$0</div></div>
+        <div class="cl-sum-card"><div class="label">Contingency <input type="number" id="cl_contPct" value="10" step="1" style="width:44px;padding:2px 4px;display:inline-block;font-size:0.8rem;"> %</div><div class="val" id="cl_cont">$0</div></div>
+        <div class="cl-sum-card"><div class="label">Total repair budget</div><div class="val" id="cl_total" style="color:#4ade80;">$0</div></div>
+      </div>
+      <div class="cl-filters">
+        <span class="cl-chip on" data-f="all" onclick="setClFilter('all')">All items</span>
+        <span class="cl-chip" data-f="verify" onclick="setClFilter('verify')">🔍 Verify-in-person</span>
+        <span class="cl-chip" data-f="included" onclick="setClFilter('included')">Included only</span>
+      </div>
+      <div id="clBody"></div>
+      <div class="addcustom">
+        <input type="text" id="customLabel" placeholder="Add your own item (e.g. Retaining wall)" style="flex:1;min-width:180px;">
+        <div class="amt-wrap" style="display:flex;align-items:center;gap:4px;background:#0f1117;border:1px solid #2a3550;border-radius:8px;padding:0 9px;"><span style="color:#64748b;">$</span><input type="number" id="customAmt" placeholder="0" style="width:90px;border:none;background:transparent;padding:7px 0;"></div>
+        <label style="font-size:0.72rem;color:#94a3b8;display:flex;align-items:center;gap:5px;"><input type="checkbox" id="customVerify" style="width:auto;"> verify item</label>
+        <button class="btn ghost" onclick="addCustom()">+ Add</button>
+      </div>
+      <div id="verifyTodo"></div>
+    </div>
+
+    <!-- 5. ARV -->
+    <div class="panel hidden" id="arvPanel">
+      <h3><span class="step-num">5</span> After-Repair Value (ARV)</h3>
+      <div class="sub">What the house sells for <i>fixed up</i>. Pull recent sold comps, then set the number.</div>
+      <div class="row" style="align-items:flex-end;">
+        <div class="fld" style="flex:1; min-width:180px;"><label>ARV — your number</label><input type="number" id="arvInput" step="1000" oninput="markArvEdited(); recalc()"></div>
+        <button class="btn ghost" id="compsBtn" data-local-only class="hidden" onclick="pullComps()">Pull PropStream comps</button>
+      </div>
+      <div style="font-size:0.72rem;color:#94a3b8;margin-top:10px;">Open sold comps near this property:</div>
+      <div id="compLinks" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;"></div>
+      <div style="font-size:0.68rem;color:#475569;margin-top:8px;line-height:1.6;">
+        Pick 3–5 recently sold, updated homes of similar size/beds within ~½ mile. Median $/sqft × this home's sqft ≈ ARV.
+        Trim for a smaller lot, busy street, or dated street appeal.
+      </div>
+      <div id="compsBody"></div>
+    </div>
+
+    <!-- 6. DEAL MATH -->
+    <div class="panel hidden" id="mathPanel">
+      <h3><span class="step-num">6</span> Deal math</h3>
+      <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:.6px;color:#64748b;margin-bottom:6px;">Value &amp; scope</div>
+      <div class="grid2">
+        <div class="fld"><label>ARV</label><input type="number" id="m_arv" step="1000" oninput="recalc()"></div>
+        <div class="fld"><label>Repair budget <span class="srctag" id="m_repairSrc"></span></label><input type="number" id="m_repairs" step="1000" oninput="markRepairsEdited(); recalc()"></div>
+        <div class="fld"><label>Rule of thumb %</label><input type="number" id="m_rule" value="70" step="1" oninput="recalc()"></div>
+        <div class="fld"><label>Desired profit $</label><input type="number" id="m_profit" value="30000" step="1000" oninput="recalc()"></div>
+      </div>
+
+      <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:.6px;color:#64748b;margin:14px 0 6px;">Buy-side closing costs <span style="text-transform:none;letter-spacing:0;color:#475569;">— title/escrow, lender points, inspection, appraisal, recording</span></div>
+      <div class="grid2">
+        <div class="fld"><label>% of purchase price</label><input type="number" id="m_buyPct" value="2" step="0.25" oninput="recalc()"></div>
+        <div class="fld"><label>Flat $ (fees that don't scale)</label><input type="number" id="m_buyFlat" value="0" step="250" oninput="recalc()"></div>
+      </div>
+
+      <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:.6px;color:#64748b;margin:14px 0 6px;">Sell-side &amp; carry</div>
+      <div class="grid2">
+        <div class="fld"><label>Selling costs % of ARV</label><input type="number" id="m_sell" value="8" step="0.5" oninput="recalc()"></div>
+        <div class="fld"><label>Holding costs $</label><input type="number" id="m_hold" value="0" step="500" oninput="recalc()"></div>
+        <div class="fld"><label>Wholesale / assignment fee $</label><input type="number" id="m_fee" value="0" step="1000" oninput="recalc()"></div>
+        <div class="fld"><label>Your purchase price $</label><input type="number" id="m_purchase" step="1000" oninput="recalc()"></div>
+      </div>
+
+      <div class="result-cards">
+        <div class="rc"><div class="label">MAO — <span id="ruleLbl">70</span>% rule</div><div class="bignum" id="out_mao70">—</div><div class="sub" style="margin:0;">ARV × rule − repairs − fee</div></div>
+        <div class="rc"><div class="label">MAO — full underwriting</div><div class="bignum" id="out_maoFull">—</div><div class="sub" style="margin:0;">nets your target profit after all costs</div></div>
+        <div class="rc"><div class="label">Profit at your price</div><div class="bignum" id="out_dealProfit">—</div><div class="sub" style="margin:0;" id="out_roi"></div></div>
+      </div>
+      <div id="mathDetail"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt$ = n => (n === null || n === undefined || isNaN(n)) ? '—' : (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString();
+const LS_KEY = 'flip_deals';
+const FACT_KEYS = ['address','city','state','zip','beds','baths','sqft','yearBuilt','listPrice'];
+
+// FlipScope runs 100% in the browser. The optional local Node server (serve.js on
+// :3456) adds paste-a-link scraping + PropStream comps. We probe for it on load.
+const SERVER = (/^https?:$/.test(location.protocol) && location.host)
+  ? location.origin
+  : 'http://localhost:3456';
+const OPENED_WRONG = (location.protocol === 'file:');
+const api = (path, opts) => fetch(SERVER + path, opts);
+let LOCAL_MODE = false;
+
+function applyMode() {
+  document.querySelectorAll('[data-local-only]').forEach(el => el.classList.toggle('hidden', !LOCAL_MODE));
+}
+let serverReady;
+function probeServer() {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 1500);
+  serverReady = api('/api/creds-status', { signal: ctrl.signal })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { clearTimeout(t); if (j) { LOCAL_MODE = true; applyMode(); } return LOCAL_MODE; })
+    .catch(() => { clearTimeout(t); return false; });
+  return serverReady;
+}
+
+/* ---------- Repair catalog (Utah mid-grade flip, 2026 $) ---------- */
+const CATALOG = [
+  // Interior — usually visible in photos
+  { cat:'Interior', key:'kitchen',   label:'Kitchen',                      tiers:[['Cosmetic',3500],['Mid remodel',15000],['Full gut',30000]] },
+  { cat:'Interior', key:'baths',     label:'Bathrooms',      perQty:'baths', tiers:[['Cosmetic /ba',1800],['Remodel /ba',6000],['Gut /ba',12000]] },
+  { cat:'Interior', key:'flooring',  label:'Flooring',                     tiers:[['Refinish / patch',2800],['New LVP + carpet',{psf:4.75}],['Full premium',{psf:6.5}]] },
+  { cat:'Interior', key:'paint',     label:'Interior paint',               tiers:[['Touch-up',1500],['Full repaint',{psf:2.25}],['Paint + trim/cabinets',{psf:3.25}]] },
+  { cat:'Interior', key:'drywall',   label:'Drywall / texture',            tiers:[['Minor patch',800],['Moderate',3500],['Extensive',9000]] },
+  { cat:'Interior', key:'trim',      label:'Interior doors & trim',        tiers:[['A few',700],['Most of house',2800],['Whole house',5500]] },
+  { cat:'Interior', key:'lighting',  label:'Lighting, switches & outlets', tiers:[['Fixtures only',600],['Fixtures + devices',1800],['Full trim-out',3800]] },
+  { cat:'Interior', key:'appliances',label:'Appliances',                   tiers:[['Range + dishwasher',1600],['Full suite',3200],['Premium suite',5200]] },
+
+  // Systems — often NOT in photos, verify on walkthrough
+  { cat:'Systems', key:'roof',       label:'Roof',                verify:true, tiers:[['Repair / patch',1800],['Full tear-off',12000],['Tear-off + sheathing',19000]] },
+  { cat:'Systems', key:'furnace',    label:'Furnace / heating',   verify:true, tiers:[['Tune-up',450],['Replace furnace',4800],['Replace + ductwork',9500]] },
+  { cat:'Systems', key:'ac',         label:'A/C / cooling',       verify:true, tiers:[['Service / recharge',450],['Replace condenser + coil',5800],['Add central A/C',9000]] },
+  { cat:'Systems', key:'waterheater',label:'Hot water heater',    verify:true, tiers:[['Replace (50 gal)',1800],['Tankless conversion',4200]] },
+  { cat:'Systems', key:'panel',      label:'Electrical panel & wiring', verify:true, tiers:[['New 200A panel',3000],['Panel + partial rewire',8500],['Full rewire',15000]] },
+  { cat:'Systems', key:'plumbing',   label:'Plumbing',            verify:true, tiers:[['Minor repairs',1200],['PEX repipe',7000],['Repipe + main line',14000]] },
+  { cat:'Systems', key:'windows',    label:'Windows',             verify:true, tiers:[['Reglaze / hardware',1500],['Replace failed units',6500],['Whole-house replacement',13000]] },
+  { cat:'Systems', key:'sewer',      label:'Sewer / septic',      verify:true, tiers:[['Scope & clean',350],['Sewer line repair',5500],['Septic replacement',18000]] },
+  { cat:'Systems', key:'foundation', label:'Foundation / structural', verify:true, tiers:[['Seal cracks + monitor',2500],['Piering / stabilization',12000],['Major structural',28000]] },
+
+  // Exterior
+  { cat:'Exterior', key:'extpaint',  label:'Exterior paint / siding', verify:true, tiers:[['Paint only',4800],['Repair + paint',9500],['New siding',19000]] },
+  { cat:'Exterior', key:'extdoors',  label:'Exterior doors',       tiers:[['New entry door',950],['All exterior doors',2800]] },
+  { cat:'Exterior', key:'garage',    label:'Garage door',          tiers:[['New opener',500],['New door + opener',1900]] },
+  { cat:'Exterior', key:'driveway',  label:'Driveway / walkways',  verify:true, tiers:[['Crack seal / patch',700],['Partial replace',3200],['Full replacement',8000]] },
+  { cat:'Exterior', key:'landscape', label:'Landscaping / yard',   verify:true, tiers:[['Cleanup + haul',1200],['Refresh: sod, beds, trees',4000],['Full landscape + sprinklers',10000]] },
+  { cat:'Exterior', key:'gutters',   label:'Gutters / soffit / fascia', verify:true, tiers:[['Clean + minor repair',600],['Partial replace',3200],['Full replacement',6500]] },
+  { cat:'Exterior', key:'fence',     label:'Fencing',              tiers:[['Repair sections',1500],['New perimeter fence',4800]] },
+  { cat:'Exterior', key:'deck',      label:'Deck / porch / patio', tiers:[['Repair + seal',1200],['Rebuild',5500]] },
+
+  // Other
+  { cat:'Other', key:'mold',     label:'Mold / water damage',  verify:true, tiers:[['Localized remediation',2500],['Whole-area remediation',9000]] },
+  { cat:'Other', key:'pest',     label:'Pest / termite',       verify:true, tiers:[['Treatment',1200],['Treatment + repairs',5000]] },
+  { cat:'Other', key:'cleanout', label:'Junk-out / debris removal', tiers:[['Light haul',800],['Full property cleanout',3000]] },
+  { cat:'Other', key:'permits',  label:'Permits & dumpster',   tiers:[['Standard',2500]] },
+];
+
+/* ---------- Regional labor/material cost factor by ZIP ----------
+   Catalog prices are anchored to the Salt Lake City metro (factor 1.00).
+   Every tier price and $/sqft rate is multiplied by this factor.
+   Editable per-deal — override it if you have real local bids. */
+const ZIP_COST = {
+  // resort / high-cost mountain towns — trades are scarce and booked out
+  exact: {
+    '84060':1.42,'84068':1.42,'84098':1.40,          // Park City / Snyderville
+    '84032':1.22,'84036':1.20,'84055':1.18,'84017':1.12,'84033':1.10, // Heber / Kamas / Oakley / Coalville
+    '84770':1.03,'84780':1.03,'84790':1.03,'84738':1.02,'84737':1.02,'84725':1.00, // St George / Washington Co
+    '84341':0.95,'84321':0.95,'84332':0.95,           // Logan / Cache Valley
+    '84074':1.00,'84029':1.00,'84071':1.00,'84080':1.00,'84069':1.00,'84022':1.00, // Tooele Co.
+  },
+  // 3-digit ZIP prefix (RSMeans-style zones)
+  prefix: {
+    '840':0.99,'841':1.00,'842':0.99,'843':0.95,'844':0.97,'845':0.92,'846':0.96,'847':0.93,
+    // out-of-state fallback by region
+    '800':0.98,'801':0.98,'802':0.98,'803':1.00,'820':0.94,'830':0.95,'850':0.97,'852':0.97,'857':0.95,
+    '890':1.05,'891':1.05,'900':1.24,'902':1.24,'941':1.30,'945':1.28,'980':1.14,
+  },
+  region: { '0':1.14,'1':1.14,'2':1.00,'3':0.92,'4':0.97,'5':0.98,'6':0.91,'7':0.90,'8':0.97,'9':1.20 },
+};
+const ZIP_AREA = {
+  '840':'northern Utah','841':'Salt Lake Co.','843':'Cache Valley','844':'Ogden area',
+  '845':'Carbon / eastern Utah','846':'Utah Co.','847':'south-central Utah',
+};
+function marketFor(zip) {
+  zip = String(zip || '').trim().slice(0, 5);
+  if (ZIP_COST.exact[zip]) {
+    const area = /^(84060|84068|84098)/.test(zip) ? 'Park City / Summit Co.'
+      : /^(84017|84032|84033|84036|84055)/.test(zip) ? 'Heber Valley / Kamas'
+      : /^(84725|84737|84738|84770|84780|84790)/.test(zip) ? 'St George / Washington Co.'
+      : /^(84321|84332|84341)/.test(zip) ? 'Cache Valley'
+      : /^(84022|84029|84069|84071|84074|84080)/.test(zip) ? 'Tooele Co.' : 'this ZIP';
+    return { factor: ZIP_COST.exact[zip], area };
+  }
+  const p3 = zip.slice(0, 3);
+  if (ZIP_COST.prefix[p3]) return { factor: ZIP_COST.prefix[p3], area: ZIP_AREA[p3] || ('ZIP ' + p3 + 'xx') };
+  if (zip && ZIP_COST.region[zip[0]]) return { factor: ZIP_COST.region[zip[0]], area: 'regional estimate' };
+  return { factor: 1.00, area: 'no ZIP — using SLC baseline' };
+}
+
+let deal = blankDeal();
+let deals = loadDeals();
+let curPhoto = 0;
+let arvUserEdited = false;
+let repairsUserEdited = false;
+let clFilter = 'all';
+
+function blankDeal() {
+  return { id: 't' + Date.now(), url: '', photos: [], facts: {}, factSource: {},
+           checklist: {}, customItems: [], contPct: 10,
+           costFactor: null, costFactorEdited: false,
+           arv: null, comps: null, math: {}, createdAt: Date.now() };
+}
+function cf() { return deal.costFactor || 1; }
+function loadDeals() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch(e) { return []; } }
+function dealHasContent(d) {
+  return !!(d.photos.length || (d.facts && d.facts.address) || Object.keys(d.checklist||{}).length || (d.customItems||[]).length || d.arv);
+}
+function persist() {
+  if (!dealHasContent(deal)) {
+    deals = deals.filter(d => d.id !== deal.id);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(deals)); } catch(e) {}
+    renderDealList();
+    return;
+  }
+  const idx = deals.findIndex(d => d.id === deal.id);
+  const slim = JSON.parse(JSON.stringify(deal));
+  const write = () => { if (idx >= 0) deals[idx] = slim; else deals.unshift(slim); };
+  write();
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(deals));
+  } catch(e) {
+    slim.photos = slim.photos.filter(p => !p.startsWith('data:'));
+    slim._photosDropped = true;
+    write();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(deals)); flash('srcMsg','info','Saved — uploaded photos were too large for local storage and weren’t kept.'); }
+    catch(e2) { flash('srcMsg','err','Local storage full — could not save this deal.'); }
+  }
+  renderDealList();
+}
+function renderDealList() {
+  $('dealList').innerHTML = deals.map(d => `
+    <div class="deal-item ${d.id === deal.id ? 'active' : ''}" onclick="openDeal('${d.id}')">
+      <span class="di-del" onclick="event.stopPropagation();deleteDeal('${d.id}')">×</span>
+      <div class="di-addr">${(d.facts && d.facts.address) || 'Untitled property'}</div>
+      <div class="di-meta">${fmt$(repairsTotalFor(d))} repairs · ${new Date(d.createdAt).toLocaleDateString()}</div>
+    </div>`).join('') || '<div class="sub">No saved deals yet.</div>';
+}
+function openDeal(id) {
+  const d = deals.find(x => x.id === id); if (!d) return;
+  deal = Object.assign(blankDeal(), JSON.parse(JSON.stringify(d)));
+  curPhoto = 0; arvUserEdited = !!deal.arv; repairsUserEdited = deal.math && deal.math.repairs != null;
+  hydrateUI();
+}
+function deleteDeal(id) {
+  if (!confirm('Delete this analysis?')) return;
+  deals = deals.filter(x => x.id !== id);
+  localStorage.setItem(LS_KEY, JSON.stringify(deals));
+  if (deal.id === id) newDeal(); else renderDealList();
+}
+function newDeal() { deal = blankDeal(); curPhoto = 0; arvUserEdited = false; repairsUserEdited = false; hydrateUI(); }
+
+function hydrateUI() {
+  $('urlInput').value = deal.url || '';
+  FACT_KEYS.forEach(k => {
+    $('f_' + k).value = (deal.facts && deal.facts[k] != null) ? deal.facts[k] : (k === 'state' ? 'UT' : '');
+    const st = $('src_' + k); if (st) st.textContent = (deal.factSource && deal.factSource[k]) ? deal.factSource[k] : '';
+  });
+  $('cl_contPct').value = deal.contPct ?? 10;
+  syncCostFactor();
+  renderPhotos();
+  renderChecklist();
+  $('arvInput').value = deal.arv || '';
+  renderComps(deal.comps);
+  renderCompLinks();
+  const MATH_DEFAULTS = { arv:'', repairs:'', rule:70, profit:30000, buyPct:2, buyFlat:0, sell:8, hold:0, fee:0, purchase:'' };
+  Object.entries(MATH_DEFAULTS).forEach(([k, v]) => { if ($('m_' + k)) $('m_' + k).value = (deal.math && deal.math[k] != null) ? deal.math[k] : v; });
+  const hasProp = deal.photos.length || (deal.facts && deal.facts.address);
+  $('photoPanel').classList.toggle('hidden', !deal.photos.length);
+  $('factsPanel').classList.toggle('hidden', !hasProp);
+  $('clPanel').classList.toggle('hidden', !hasProp);
+  $('arvPanel').classList.toggle('hidden', !hasProp);
+  $('mathPanel').classList.toggle('hidden', !hasProp);
+  syncMathInputs();
+  recalc();
+  renderDealList();
+}
+
+/* ---------- Facts ---------- */
+function readFacts() {
+  const f = {};
+  FACT_KEYS.forEach(k => {
+    const v = $('f_' + k).value.trim();
+    if (v !== '') f[k] = (['address','city','state','zip'].includes(k)) ? v : parseFloat(v);
+  });
+  deal.facts = f;
+  return f;
+}
+FACT_KEYS.forEach(k => {
+  $('f_' + k).addEventListener('input', () => {
+    readFacts();
+    const st = $('src_' + k); if (st) st.textContent = 'edited';
+    if (deal.factSource) deal.factSource[k] = 'edited';
+    if (k === 'zip' || k === 'sqft') syncCostFactor();
+    if (['zip','city','state','address','sqft','beds'].includes(k)) renderCompLinks();
+    renderChecklist(); recalc(); persist();
+  });
+});
+
+/* ---------- Comp-site search links ---------- */
+function renderCompLinks() {
+  const el = $('compLinks'); if (!el) return;
+  const f = deal.facts || {};
+  if (!f.zip && !f.city) { el.innerHTML = '<span style="font-size:0.72rem;color:#475569;">Add a ZIP or city to get comp links.</span>'; return; }
+  const zip = f.zip || '', city = (f.city || '').trim().replace(/\s+/g, '-'), st = (f.state || 'UT').trim();
+  const redfin = zip
+    ? `https://www.redfin.com/zipcode/${zip}/filter/property-type=house,include=sold-6mo`
+    : `https://www.redfin.com/city/${encodeURIComponent(city)}/filter/include=sold-6mo`;
+  const zillow = zip
+    ? `https://www.zillow.com/${zip}/sold/`
+    : `https://www.zillow.com/homes/recently_sold/${encodeURIComponent(city + ', ' + st)}_rb/`;
+  const realtor = zip
+    ? `https://www.realtor.com/realestateandhomes-search/${zip}/show-recently-sold`
+    : `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(city)}_${st}/show-recently-sold`;
+  el.innerHTML = [['Redfin', redfin], ['Zillow', zillow], ['Realtor.com', realtor]]
+    .map(([n, u]) => `<a class="btn ghost" style="padding:5px 12px;" href="${u}" target="_blank" rel="noopener">${n} sold ↗</a>`).join('');
+}
+
+/* ---------- Listing fetch ---------- */
+async function fetchListing() {
+  const url = $('urlInput').value.trim();
+  if (!url) return flash('srcMsg', 'err', 'Paste a listing URL first.');
+  if (!LOCAL_MODE) return flash('srcMsg', 'err', 'Paste-a-link needs the local FlipScope server running. Use the Grab bookmarklet or extension above, or upload photos.');
+  deal.url = url;
+  $('fetchBtn').disabled = true;
+  flash('srcMsg', 'info', '<span class="spinner"></span> Opening the listing in Chrome and pulling photos… (20–45 sec)');
+  try {
+    const r = await api('/api/flip/scrape', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
+    const j = await r.json();
+    if (j.error === 'blocked') { flash('srcMsg', 'err', '⚠ ' + j.message + ' &nbsp;<b>Or use the Grab button (option A above)</b> — it works on Zillow.'); }
+    else if (j.error && j.error !== 'busy') { flash('srcMsg', 'err', 'Scrape failed: ' + j.error + '. You can still upload photos manually.'); }
+    else if (j.error === 'busy') { flash('srcMsg', 'err', j.message); }
+    else {
+      const added = (j.photos || []).filter(p => !deal.photos.includes(p));
+      deal.photos.push(...added);
+      const f = j.facts || {}, fsrc = j.factSource || {};
+      FACT_KEYS.forEach(k => {
+        if (f[k] != null && !$('f_' + k).value) {
+          $('f_' + k).value = f[k];
+          deal.factSource[k] = fsrc[k] || 'listing';
+        }
+      });
+      readFacts();
+      const nf = Object.keys(f).length;
+      if (j.warning) flash('srcMsg', 'err', '⚠ ' + j.warning);
+      else if (!added.length && !nf) flash('srcMsg', 'err', 'Nothing usable found on that page (many sites block scraping). Upload photos manually and type the facts.');
+      else flash('srcMsg', 'info', `Pulled ${added.length} photo${added.length!==1?'s':''}${nf?' + '+nf+' facts':''}. <b>Double-check every field in Property facts</b> — scraped values can be wrong.`);
+      curPhoto = 0;
+      hydrateUI();
+      persist();
+    }
+  } catch(e) { flash('srcMsg', 'err', 'Request failed: ' + e.message); }
+  $('fetchBtn').disabled = false;
+}
+
+/* ---------- Upload ---------- */
+const dz = $('dropzone'), fi = $('fileInput');
+dz.onclick = () => fi.click();
+dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+dz.ondragleave = () => dz.classList.remove('drag');
+dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); handleFiles(e.dataTransfer.files); };
+fi.onchange = () => handleFiles(fi.files);
+function handleFiles(files) {
+  const imgs = [...files].filter(f => f.type.startsWith('image/'));
+  if (!imgs.length) return;
+  let done = 0;
+  const startLen = deal.photos.length;
+  imgs.forEach(file => {
+    const rd = new FileReader();
+    rd.onload = () => downscale(rd.result, dataUrl => {
+      deal.photos.push(dataUrl);
+      if (++done === imgs.length) { curPhoto = startLen; hydrateUI(); persist();
+        flash('srcMsg', 'info', `Added ${imgs.length} photo${imgs.length!==1?'s':''}.`); }
+    });
+  });
+}
+function downscale(src, cb, max = 1600, q = 0.82) {
+  const img = new Image();
+  img.onload = () => {
+    let { width: w, height: h } = img;
+    if (w > max || h > max) { const s = max / Math.max(w, h); w = Math.round(w*s); h = Math.round(h*s); }
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    cb(c.toDataURL('image/jpeg', q));
+  };
+  img.onerror = () => cb(src);
+  img.src = src;
+}
+
+/* ---------- Photo viewer ---------- */
+function renderPhotos() {
+  const n = deal.photos.length;
+  $('photoPanel').classList.toggle('hidden', !n);
+  if (!n) return;
+  curPhoto = Math.max(0, Math.min(curPhoto, n - 1));
+  $('viewerImg').src = deal.photos[curPhoto];
+  $('viewerCounter').textContent = `${curPhoto + 1} / ${n}`;
+  $('photoCount').textContent = `${n} photo${n!==1?'s':''}`;
+  $('thumbs').innerHTML = deal.photos.map((p, i) =>
+    `<img src="${p}" class="${i === curPhoto ? 'active' : ''}" onclick="curPhoto=${i};renderPhotos()">`).join('');
+}
+function stepPhoto(d) { curPhoto = (curPhoto + d + deal.photos.length) % deal.photos.length; renderPhotos(); }
+function removeCurrentPhoto() {
+  deal.photos.splice(curPhoto, 1);
+  renderPhotos(); persist();
+  if (!deal.photos.length) hydrateUI();
+}
+document.addEventListener('keydown', e => {
+  if ($('photoPanel').classList.contains('hidden')) return;
+  if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowLeft') stepPhoto(-1);
+  if (e.key === 'ArrowRight') stepPhoto(1);
+});
+
+/* ---------- Repair checklist ---------- */
+function tierAmount(preset, sqft) {
+  let base;
+  if (typeof preset === 'number') base = preset;
+  else if (preset && preset.psf) base = preset.psf * (sqft && sqft > 200 ? sqft : 1500);
+  else return 0;
+  return Math.round(base * cf() / 25) * 25;   // apply regional factor, round to $25
+}
+
+/* Recompute amounts for every tiered item the user hasn't hand-edited. */
+function applyCostFactor() {
+  const sqft = deal.facts && deal.facts.sqft;
+  Object.keys(deal.checklist).forEach(key => {
+    const st = deal.checklist[key];
+    if (st.tier == null || st.custom) return;
+    const it = CATALOG.find(i => i.key === key); if (!it) return;
+    const q = st.qty || itemQty(it);
+    st.amount = tierAmount(it.tiers[st.tier][1], sqft) * (it.perQty ? q : 1);
+  });
+}
+
+/* Set deal.costFactor from the ZIP (unless the user overrode it) and refresh UI. */
+function syncCostFactor(force) {
+  const mk = marketFor(deal.facts && deal.facts.zip);
+  if (force || !deal.costFactorEdited) { deal.costFactor = mk.factor; }
+  const fi = $('cl_costFactor'); if (fi) fi.value = (deal.costFactor || 1).toFixed(2);
+  const zEl = $('cf_zip'), aEl = $('cf_area');
+  if (zEl) zEl.textContent = (deal.facts && deal.facts.zip) || '—';
+  if (aEl) aEl.textContent = mk.area + (deal.costFactorEdited ? ' · overridden' : '');
+  applyCostFactor();
+}
+function editCostFactor(v) {
+  const n = parseFloat(v);
+  if (!isFinite(n) || n <= 0) return;
+  deal.costFactor = n; deal.costFactorEdited = true;
+  $('cl_costFactor').value = n.toFixed(2);
+  const aEl = $('cf_area'); if (aEl) aEl.textContent = marketFor(deal.facts && deal.facts.zip).area + ' · overridden';
+  applyCostFactor(); renderChecklist(); recalc(); persist();
+}
+function resetCostFactor() {
+  deal.costFactorEdited = false;
+  syncCostFactor(true);
+  renderChecklist(); recalc(); persist();
+}
+function itemQty(it) {
+  if (!it.perQty) return 1;
+  const q = deal.facts && parseFloat(deal.facts[it.perQty]);
+  return (q && q > 0) ? q : 1;
+}
+function setClFilter(f) {
+  clFilter = f;
+  document.querySelectorAll('.cl-chip').forEach(c => c.classList.toggle('on', c.dataset.f === f));
+  renderChecklist();
+}
+function setTier(key, idx) {
+  const it = CATALOG.find(i => i.key === key); if (!it) return;
+  const cur = deal.checklist[key];
+  if (idx == null || idx === '' || idx === 'null') { delete deal.checklist[key]; renderChecklist(); recalc(); persist(); return; }
+  idx = +idx;
+  if (cur && cur.tier === idx) { delete deal.checklist[key]; }
+  else {
+    const sqft = deal.facts && deal.facts.sqft;
+    const amt = tierAmount(it.tiers[idx][1], sqft) * itemQty(it);
+    deal.checklist[key] = { tier: idx, amount: amt, note: (cur && cur.note) || '', qty: cur && cur.qty };
+  }
+  renderChecklist(); recalc(); persist();
+}
+function editClAmount(key, val) {
+  if (!deal.checklist[key]) deal.checklist[key] = { tier: null, amount: 0, note: '' };
+  deal.checklist[key].amount = parseFloat(val) || 0;
+  deal.checklist[key].custom = true;   // don't let regional-factor changes overwrite a hand-typed price
+  recalc(); scheduleSave();
+}
+function editClNote(key, val) {
+  if (!deal.checklist[key]) return;
+  deal.checklist[key].note = val;
+  scheduleSave();
+}
+function restoreTierAmount(key) {
+  const st = deal.checklist[key]; const it = CATALOG.find(i => i.key === key);
+  if (!st || !it || st.tier == null) return;
+  st.custom = false;
+  st.amount = tierAmount(it.tiers[st.tier][1], deal.facts && deal.facts.sqft) * (it.perQty ? (st.qty || itemQty(it)) : 1);
+  renderChecklist(); recalc(); persist();
+}
+function editClQty(key, val) {
+  const it = CATALOG.find(i => i.key === key);
+  const st = deal.checklist[key]; if (!st || !it) return;
+  st.qty = parseFloat(val) || 1;
+  if (st.tier != null) st.amount = tierAmount(it.tiers[st.tier][1], deal.facts && deal.facts.sqft) * st.qty;
+  renderChecklist(); recalc(); persist();
+}
+function removeCustom(i) { deal.customItems.splice(i, 1); renderChecklist(); recalc(); persist(); }
+function editCustom(i, field, val) {
+  deal.customItems[i][field] = field === 'amount' ? (parseFloat(val) || 0) : val;
+  recalc(); scheduleSave();
+}
+function addCustom() {
+  const label = $('customLabel').value.trim();
+  const amt = parseFloat($('customAmt').value) || 0;
+  if (!label) return;
+  deal.customItems.push({ label, amount: amt, note: '', verify: $('customVerify').checked });
+  $('customLabel').value = ''; $('customAmt').value = ''; $('customVerify').checked = false;
+  renderChecklist(); recalc(); persist();
+}
+
+function rowHtml(it) {
+  const st = deal.checklist[it.key] || {};
+  const on = st.tier != null || st.amount > 0;
+  const sqft = deal.facts && deal.facts.sqft;
+  const q = st.qty || itemQty(it);
+  const tiers = it.tiers.map((t, i) => {
+    const amt = tierAmount(t[1], sqft) * (it.perQty ? q : 1);
+    return `<div class="cl-tier ${st.tier === i ? 'on' : ''}" onclick="setTier('${it.key}',${i})">${t[0]}<b>${fmt$(amt)}</b></div>`;
+  }).join('');
+  const noneBtn = `<div class="cl-tier none-tier ${st.tier == null && !on ? 'on' : ''}" onclick="setTier('${it.key}',null)">None</div>`;
+  return `<div class="cl-row ${on ? 'on' : ''}">
+    <div class="cl-row-top">
+      <span class="cl-label">${it.label}</span>
+      ${it.verify ? '<span class="cl-verify">🔍 verify</span>' : ''}
+    </div>
+    <div class="cl-tiers">${noneBtn}${tiers}</div>
+    ${on ? `<div class="cl-detail">
+      ${it.perQty ? `<span class="qty-lbl">${it.perQty}:</span><input type="number" class="qty" value="${q}" step="0.5" onchange="editClQty('${it.key}',this.value)">` : ''}
+      <div class="amt-wrap"><span>$</span><input type="number" class="amt" value="${Math.round(st.amount||0)}" step="100" onchange="editClAmount('${it.key}',this.value)"></div>
+      ${st.custom && st.tier != null ? `<a href="#" onclick="restoreTierAmount('${it.key}');return false;" style="font-size:0.68rem;">↺ default</a>` : ''}
+      <input type="text" class="note" placeholder="note (optional)" value="${(st.note||'').replace(/"/g,'&quot;')}" oninput="editClNote('${it.key}',this.value)">
+    </div>` : ''}
+  </div>`;
+}
+function customRowHtml(c, i) {
+  return `<div class="cl-row on">
+    <div class="cl-row-top"><span class="cl-label">${c.label}</span>${c.verify ? '<span class="cl-verify">🔍 verify</span>' : ''}
+      <span style="cursor:pointer;color:#64748b;margin-left:auto;" onclick="removeCustom(${i})">remove</span></div>
+    <div class="cl-detail">
+      <div class="amt-wrap"><span>$</span><input type="number" class="amt" value="${Math.round(c.amount||0)}" step="100" onchange="editCustom(${i},'amount',this.value)"></div>
+      <input type="text" class="note" placeholder="note (optional)" value="${(c.note||'').replace(/"/g,'&quot;')}" oninput="editCustom(${i},'note',this.value)">
+    </div>
+  </div>`;
+}
+function renderChecklist() {
+  const body = $('clBody');
+  const cats = [...new Set(CATALOG.map(i => i.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    let items = CATALOG.filter(i => i.cat === cat);
+    if (clFilter === 'verify') items = items.filter(i => i.verify);
+    if (clFilter === 'included') items = items.filter(i => { const s = deal.checklist[i.key]; return s && (s.tier != null || s.amount > 0); });
+    if (!items.length) return;
+    html += `<div class="clcat">${cat}</div>` + items.map(rowHtml).join('');
+  });
+  let customs = deal.customItems || [];
+  if (clFilter === 'verify') customs = customs.map((c,i)=>[c,i]).filter(([c])=>c.verify);
+  else customs = customs.map((c,i)=>[c,i]);
+  if (customs.length && clFilter !== 'verify') { html += `<div class="clcat">Custom</div>` + customs.map(([c,i]) => customRowHtml(c,i)).join(''); }
+  else if (customs.length) { html += `<div class="clcat">Custom</div>` + customs.map(([c,i]) => customRowHtml(c,i)).join(''); }
+  body.innerHTML = html || '<div class="sub">No items match this filter.</div>';
+
+  // verify-todo
+  const pending = CATALOG.filter(i => i.verify && !(deal.checklist[i.key] && (deal.checklist[i.key].tier != null || deal.checklist[i.key].amount > 0)));
+  $('verifyTodo').innerHTML = pending.length ? `<div class="verify-todo">
+    <h4>🔍 Not yet costed — confirm on the walkthrough</h4>
+    <p>${pending.map(i => `<span class="vt-item">${i.label}</span>`).join('')}</p>
+  </div>` : '';
+}
+function repairSubtotal() {
+  let s = 0;
+  for (const k in deal.checklist) s += deal.checklist[k].amount || 0;
+  (deal.customItems || []).forEach(c => s += c.amount || 0);
+  return s;
+}
+function repairsTotal() {
+  const sub = repairSubtotal();
+  return Math.round(sub * (1 + (parseFloat(deal.contPct) || 0) / 100));
+}
+function repairsTotalFor(d) {
+  let s = 0;
+  for (const k in (d.checklist || {})) s += d.checklist[k].amount || 0;
+  (d.customItems || []).forEach(c => s += c.amount || 0);
+  return Math.round(s * (1 + (parseFloat(d.contPct) || 0) / 100));
+}
+$('cl_contPct').addEventListener('input', () => { deal.contPct = parseFloat($('cl_contPct').value) || 0; recalc(); scheduleSave(); });
+
+/* ---------- ARV / comps ---------- */
+function markArvEdited() {
+  arvUserEdited = true;
+  deal.arv = parseFloat($('arvInput').value) || null;
+  $('m_arv').value = $('arvInput').value;
+  scheduleSave();
+}
+async function pullComps() {
+  const f = readFacts();
+  if (!f.address || !f.zip) return flash('compsBody', 'err', 'Enter at least a street address and ZIP in Property facts.');
+  $('compsBtn').disabled = true;
+  $('compsBody').innerHTML = '<div class="msg info"><span class="spinner"></span> Opening PropStream in Chrome — pulling sold comps…</div>';
+  try {
+    const params = new URLSearchParams({ address: f.address, city: f.city || '', state: f.state || 'UT', zip: f.zip });
+    const j = await (await api('/api/propstream-comps?' + params)).json();
+    if (j.error === 'no_creds') $('compsBody').innerHTML = '<div class="msg err">No PropStream credentials saved. Add them in the Deal Dashboard settings.</div>';
+    else if (j.error && !(j.comps||[]).length) $('compsBody').innerHTML = `<div class="msg err">${j.message || j.error}</div>`;
+    else {
+      deal.comps = j.comps || [];
+      renderComps(deal.comps);
+      const arv = calcARV(deal.comps, f.sqft);
+      if (arv && !arvUserEdited) { deal.arv = arv.arv; $('arvInput').value = arv.arv; $('m_arv').value = arv.arv; }
+      persist(); syncMathInputs(); recalc();
+    }
+  } catch(e) { $('compsBody').innerHTML = `<div class="msg err">${e.message}</div>`; }
+  $('compsBtn').disabled = false;
+}
+function calcARV(comps, sqft) {
+  const valid = (comps || []).filter(c => c.ppsf && c.ppsf > 50 && c.ppsf < 1200);
+  if (!valid.length || !sqft) return null;
+  const v = valid.map(c => c.ppsf).sort((a,b) => a - b);
+  const mid = Math.floor(v.length / 2);
+  const med = v.length % 2 ? v[mid] : (v[mid-1] + v[mid]) / 2;
+  return { arv: Math.round(med * sqft), low: Math.round(v[0] * sqft), high: Math.round(v[v.length-1] * sqft), medPpsf: Math.round(med), count: valid.length };
+}
+function renderComps(comps) {
+  if (!comps || !comps.length) { $('compsBody').innerHTML = ''; return; }
+  const f = deal.facts || {};
+  const arv = calcARV(comps, f.sqft);
+  const rows = comps.slice(0, 20).map(c => `<tr>
+    <td>${c.address || '—'}</td><td>${fmt$(c.salePrice)}</td>
+    <td>${c.ppsf ? '$' + Math.round(c.ppsf) : '—'}</td>
+    <td>${c.sqft ? Math.round(c.sqft).toLocaleString() : '—'}</td>
+    <td>${c.beds || '—'}/${c.baths || '—'}</td><td>${c.saleDate || '—'}</td></tr>`).join('');
+  $('compsBody').innerHTML = `
+    ${arv ? `<div class="msg info">Suggested ARV: <b>${fmt$(arv.arv)}</b> — median $${arv.medPpsf}/sqft × ${Math.round(f.sqft).toLocaleString()} sqft, from ${arv.count} comps (range ${fmt$(arv.low)}–${fmt$(arv.high)})</div>` : '<div class="msg info">Add living-area sqft in Property facts to compute a suggested ARV.</div>'}
+    <div style="overflow-x:auto;"><table class="comps-table">
+      <thead><tr><th>Address</th><th>Sold</th><th>$/sqft</th><th>Sqft</th><th>Bd/Ba</th><th>Date</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+}
+
+/* ---------- Deal math ---------- */
+function markRepairsEdited() { repairsUserEdited = true; $('m_repairSrc').textContent = 'manual'; }
+function syncMathInputs() {
+  if (!repairsUserEdited) {
+    const t = repairsTotal();
+    if (t > 0) { $('m_repairs').value = t; $('m_repairSrc').textContent = 'from checklist'; }
+  }
+  if (deal.arv && !$('m_arv').value) $('m_arv').value = deal.arv;
+  if ($('arvInput').value && !$('m_arv').value) $('m_arv').value = $('arvInput').value;
+}
+function recalc() {
+  $('cl_subtotal').textContent = fmt$(repairSubtotal());
+  const contDollars = Math.round(repairSubtotal() * (parseFloat($('cl_contPct').value) || 0) / 100);
+  $('cl_cont').textContent = fmt$(contDollars);
+  $('cl_total').textContent = fmt$(repairSubtotal() + contDollars);
+
+  if (!repairsUserEdited) {
+    const t = repairSubtotal() + contDollars;
+    $('m_repairs').value = t || '';
+    $('m_repairSrc').textContent = t ? 'from checklist' : '';
+  }
+
+  const arv = parseFloat($('m_arv').value) || 0;
+  const repairs = parseFloat($('m_repairs').value) || 0;
+  const rule = (parseFloat($('m_rule').value) || 70) / 100;
+  const sellPct = (parseFloat($('m_sell').value) || 0) / 100;
+  const hold = parseFloat($('m_hold').value) || 0;
+  const profit = parseFloat($('m_profit').value) || 0;
+  const fee = parseFloat($('m_fee').value) || 0;
+  const purchase = parseFloat($('m_purchase').value) || 0;
+  const buyPct = (parseFloat($('m_buyPct').value) || 0) / 100;
+  const buyFlat = parseFloat($('m_buyFlat').value) || 0;
+
+  const sellCost = arv * sellPct;
+  // Buy-side closing scales with the purchase price, so the full-underwriting MAO
+  // solves:  MAO = ARV − repairs − sell − hold − profit − fee − (buyFlat + buyPct·MAO)
+  const maoFull = (arv - repairs - sellCost - hold - profit - fee - buyFlat) / (1 + buyPct);
+  const maoBuyCost = buyFlat + buyPct * Math.max(maoFull, 0);
+  const mao70 = arv * rule - repairs - fee;                 // heuristic — deliberately kept simple
+  const buyCost = buyFlat + buyPct * purchase;
+  const dealProfit = arv - purchase - buyCost - repairs - sellCost - hold - fee;
+  const cashIn = purchase + buyCost + repairs + hold;
+  const roi = purchase ? (dealProfit / cashIn) * 100 : null;
+
+  $('ruleLbl').textContent = Math.round(rule * 100);
+  $('out_mao70').textContent = arv ? fmt$(mao70) : '—';
+  $('out_maoFull').textContent = arv ? fmt$(maoFull) : '—';
+  const dp = $('out_dealProfit');
+  dp.textContent = (arv && purchase) ? fmt$(dealProfit) : '—';
+  dp.className = 'bignum ' + (dealProfit >= 0 ? 'green' : 'red');
+  $('out_roi').textContent = roi != null ? `${roi.toFixed(0)}% ROI on cash in deal` : '';
+
+  $('mathDetail').innerHTML = arv ? `
+    <div class="kv"><span class="k">ARV</span><span class="v">${fmt$(arv)}</span></div>
+    <div class="kv"><span class="k">− Repairs</span><span class="v">${fmt$(-repairs)}</span></div>
+    <div class="kv"><span class="k">− Buy-side closing (${(buyPct*100).toFixed(2)}% of offer${buyFlat ? ' + ' + fmt$(buyFlat) + ' flat' : ''})</span><span class="v">${fmt$(-maoBuyCost)}</span></div>
+    <div class="kv"><span class="k">− Selling costs (${(sellPct*100).toFixed(1)}% of ARV)</span><span class="v">${fmt$(-sellCost)}</span></div>
+    <div class="kv"><span class="k">− Holding costs</span><span class="v">${fmt$(-hold)}</span></div>
+    <div class="kv"><span class="k">− Wholesale / assignment fee</span><span class="v">${fmt$(-fee)}</span></div>
+    <div class="kv"><span class="k">− Desired profit</span><span class="v">${fmt$(-profit)}</span></div>
+    <div class="kv" style="border-bottom:none;border-top:1px solid #2a3550;margin-top:4px;"><span class="k" style="color:#e2e8f0;font-weight:700">Max allowable offer (full underwriting)</span><span class="v" style="color:#4ade80">${fmt$(maoFull)}</span></div>
+    ${purchase ? `<div class="kv" style="border:none;margin-top:8px;"><span class="k" style="color:#64748b;">At your ${fmt$(purchase)} offer — buy-side closing</span><span class="v">${fmt$(-buyCost)}</span></div>
+    <div class="kv" style="border:none;"><span class="k" style="color:#64748b;">Total cash in the deal</span><span class="v">${fmt$(cashIn)}</span></div>` : ''}
+  ` : '<div class="sub">Enter an ARV to see the breakdown.</div>';
+
+  deal.math = ['arv','rule','sell','hold','profit','fee','purchase','buyPct','buyFlat'].reduce((o,k) => { const v = $('m_'+k).value; if (v!=='') o[k] = parseFloat(v); return o; }, {});
+  if (repairsUserEdited && $('m_repairs').value !== '') deal.math.repairs = parseFloat($('m_repairs').value);
+  scheduleSave();
+}
+let _saveT;
+function scheduleSave() { clearTimeout(_saveT); _saveT = setTimeout(persist, 600); }
+
+/* ---------- Bookmarklet + import ---------- */
+function showBmkHelp() { $('bmkHelp').classList.toggle('hidden'); }
+
+function buildBookmarklet() {
+  const origin = SERVER;
+  // This function body runs on the listing page (zillow/redfin/realtor) in the user's own browser.
+  const code = function () {
+    try {
+      var H = document.documentElement.outerHTML;
+      var pics = [], seen = {};
+      var BAD = /logo|sprite|icon|favicon|avatar|headshot|agent|broker|badge|map|staticmap|street[_-]?view|mapbox|placeholder|walkscore|schools|\/ads?\//i;
+      var add = function (u) {
+        if (!u || typeof u !== 'string' || u.indexOf('data:') === 0 || BAD.test(u)) return;
+        var stem = u.split('/').pop().split('?')[0].toLowerCase()
+          .replace(/^genmid\./, '').replace(/[-_]p_[a-z]\b/, '').replace(/[-_]cc_ft_\d+/, '')
+          .replace(/[-_](mbpaddedwide|mbpaddedwh|bigphoto|islphoto|\d{2,4}x\d{2,4})/g, '')
+          .replace(/\.(jpe?g|png|webp|avif)$/, '').replace(/_\d{1,2}$/, '');
+        if (stem.length < 4 || seen[stem]) return;
+        seen[stem] = 1; pics.push(u);
+      };
+      var pats = [
+        /https?:\/\/photos\.zillowstatic\.com\/fp\/[a-z0-9]+-[a-z_0-9]+\.(?:jpg|jpeg|webp|png)/gi,
+        /https?:\/\/(?:ssl\.)?cdn-redfin\.com\/photo\/\d+\/[a-z0-9.]+\/\d+\/[\w.\-]+\.(?:jpg|jpeg|webp|png)/gi,
+        /https?:\/\/[\w.\-]*rdcpix\.com\/[\w./\-]+\.(?:jpg|jpeg|webp|png)/gi
+      ];
+      pats.forEach(function (re) { (H.match(re) || []).forEach(function (u) { add(u.replace(/\\u002F/g, '/').replace(/\\\//g, '/')); }); });
+      if (pics.length < 3) {
+        [].forEach.call(document.images, function (im) { if ((im.naturalWidth || 0) >= 500) add(im.currentSrc || im.src); });
+        [].forEach.call(document.querySelectorAll('[style*="background-image"]'), function (el) {
+          var m = /url\(["']?([^"')]+)/.exec(el.getAttribute('style') || ''); if (m) add(m[1]);
+        });
+      }
+      // drop "nearby homes" — keep only photos sharing the dominant listing id
+      var idc = {};
+      pics.forEach(function (u) { var m = /[\/.](\d{6,})_/.exec(u); if (m) idc[m[1]] = (idc[m[1]] || 0) + 1; });
+      var domId = Object.keys(idc).sort(function (a, b) { return idc[b] - idc[a]; })[0];
+      if (domId && idc[domId] >= 3) pics = pics.filter(function (u) { return u.indexOf(domId) > -1 || !/[\/.]\d{6,}_/.test(u); });
+      var f = {}, mt = function (p) { var e = document.querySelector('meta[property="' + p + '"]'); return e ? e.content : ''; };
+      var ogt = mt('og:title') || document.title, ogd = mt('og:description');
+      var tt = ogt.replace(/\s*[-|]\s*\d+\s*beds?.*/i, '').replace(/\s*\|.*/, '').trim();
+      var am = /^(.+?),\s*([A-Za-z .'\-]+),\s*([A-Z]{2})\s*(\d{5})/.exec(tt) || /([\dA-Za-z][^,]*?),\s*([A-Za-z .'\-]+),\s*([A-Z]{2})\s*(\d{5})/.exec(ogd);
+      if (am) { f.address = am[1].trim(); f.city = am[2].trim(); f.state = am[3]; f.zip = am[4]; }
+      var src = (ogd + ' ' + document.body.innerText.slice(0, 4000)).replace(/\s+/g, ' ');
+      var bm = /(\d+(?:\.\d+)?)\s*(?:bd\b|beds?\b)\D{0,6}(\d+(?:\.\d+)?)\s*(?:ba\b|baths?\b)\D{0,10}([\d,]{3,})\s*(?:sq)/i.exec(src);
+      if (bm) { f.beds = +bm[1]; f.baths = +bm[2]; f.sqft = +bm[3].replace(/,/g, ''); }
+      var pm = /\$\s?([\d,]{5,})/.exec(ogd); if (pm) f.listPrice = +pm[1].replace(/,/g, '');
+      var ym = /(?:built in|year built|yr\.? built)\D{0,6}((?:18|19|20)\d{2})/i.exec(src); if (ym) f.yearBuilt = +ym[1];
+      if (!pics.length) { alert('No listing photos found on this page. Make sure the photo gallery has loaded, then click again.'); return; }
+      var payload = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify({ photos: pics.slice(0, 40), facts: f, url: location.href })))));
+      window.open('__ORIGIN__/flipscope.html#import=' + payload, '_blank');
+    } catch (e) { alert('Grab failed: ' + e.message); }
+  };
+  const src = 'javascript:(' + code.toString().replace('__ORIGIN__', origin) + ')();';
+  $('bmk').href = src;
+}
+
+function handleImport() {
+  const u = /#url=(.+)$/.exec(location.hash);
+  if (u) {
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      const listUrl = decodeURIComponent(u[1]);
+      $('urlInput').value = listUrl;
+      deal.url = listUrl;
+      const host = (listUrl.match(/^https?:\/\/([^\/]+)/) || [])[1] || 'that page';
+      flash('srcMsg', 'info', '<span class="spinner"></span> Checking…');
+      (serverReady || Promise.resolve(false)).then(ok => {
+        if (ok) { flash('srcMsg', 'info', 'The grabber found no photos on that page — trying a server fetch…'); fetchListing(); }
+        else flash('srcMsg', 'err', `The grabber couldn't read photos from ${host} (the site blocked it or the gallery hadn't loaded). Open the listing, save the photos, and drop them in the uploader below.`);
+      });
+    } catch (e) {}
+    return true;
+  }
+  const m = /#import=(.+)$/.exec(location.hash);
+  if (!m) return false;
+  try {
+    const data = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+    history.replaceState(null, '', location.pathname + location.search);
+    if (deal.photos.length || (deal.facts && deal.facts.address)) newDeal();
+    deal.url = data.url || '';
+    deal.photos = (data.photos || []).slice(0, 40);
+    const f = data.facts || {};
+    FACT_KEYS.forEach(k => { if (f[k] != null) { deal.facts[k] = f[k]; deal.factSource[k] = 'grabbed'; } });
+    curPhoto = 0;
+    hydrateUI();
+    persist();
+    flash('srcMsg', 'info', `Grabbed ${deal.photos.length} photo${deal.photos.length!==1?'s':''}${Object.keys(f).length?' + '+Object.keys(f).length+' facts':''} from the listing. <b>Check the facts below</b>, then work the checklist.`);
+    return true;
+  } catch (e) { flash('srcMsg', 'err', 'Could not read the grabbed data: ' + e.message); return false; }
+}
+
+/* ---------- misc ---------- */
+function flash(id, kind, html) { const el = $(id); if (el) el.innerHTML = `<div class="msg ${kind}">${html}</div>`; }
+
+buildBookmarklet();
+applyMode();
+probeServer();
+renderDealList();
+if (!handleImport()) hydrateUI();
+window.addEventListener('hashchange', handleImport);
+
+// Opened as a local file:// — relative asset paths still work, but warn the user.
+if (OPENED_WRONG) {
+  const bar = document.createElement('div');
+  bar.style.cssText = 'background:#3a2a08;color:#fbbf24;border-bottom:1px solid #59421a;padding:9px 22px;font-size:0.76rem;';
+  bar.innerHTML = `You've opened FlipScope as a local file. It works, but saved deals won't carry between here and the hosted version. For the best experience use <b>leeschoettle.com/flipscope.html</b> (or your own local server at <b>localhost:3456/flipscope.html</b>).`;
+  document.body.insertBefore(bar, document.body.firstChild);
+}
+</script>
+</body>
+</html>

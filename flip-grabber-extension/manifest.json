@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "FlipScope — Grab Listing",
+  "version": "1.2.0",
+  "description": "Grab photos + property facts from a Zillow/Redfin/Realtor listing and send them to FlipScope.",
+  "permissions": ["scripting", "activeTab", "tabs", "notifications", "storage"],
+  "background": { "service_worker": "bg.js" },
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "action": {
+    "default_title": "Grab this listing for FlipScope",
+    "default_icon": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+  }
+}
