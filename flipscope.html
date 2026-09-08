@@ -373,9 +373,9 @@ try { window.postMessage({ __flipscope: 'ping' }, '*'); } catch (e) {}
 
 function updateGrabHint() {
   const el = document.getElementById('grabHint'); if (!el) return;
-  if (LOCAL_MODE) el.innerHTML = 'Opens the listing in Chrome and pulls the photos + facts. Works by link or by address.';
-  else if (EXT_AVAILABLE) el.innerHTML = '<span style="color:#4ade80;">✓ Grabber extension connected</span> — paste a link or type an address and it fetches in the background (works on Zillow).';
-  else el.innerHTML = 'For auto-fetch, install the extension (C) or run FlipScope locally. Otherwise use the bookmarklet (B) or upload photos (D).';
+  if (LOCAL_MODE) el.innerHTML = '<span style="color:#4ade80;">✓ Connected</span> — paste a link or type a full address, it pulls the photos + facts (works on Zillow).';
+  else if (EXT_AVAILABLE) el.innerHTML = '<span style="color:#4ade80;">✓ Grabber extension connected</span> — paste a link or type an address and it fetches in the background.';
+  else el.innerHTML = 'Auto-fetch is offline right now. Use the bookmarklet (B), the extension (C), or upload photos (D).';
 }
 
 function applyMode() {
@@ -400,15 +400,27 @@ function grabViaExtension(target) {
   });
 }
 let serverReady;
+async function discoverPublishedApi() {
+  // When run hosted, check for a tunnelled server published by flipscope-host.command.
+  if (onLocalhost || location.protocol === 'file:') return null;
+  try {
+    const r = await fetch('flipscope-endpoint.json?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return (j && typeof j.api === 'string' && /^https:\/\//.test(j.api)) ? j.api.replace(/\/$/, '') : null;
+  } catch (e) { return null; }
+}
 function probeServer() {
-  const bases = [];
-  if (API_BASE) bases.push(API_BASE);
-  if (!bases.includes(LOCAL_SERVER)) bases.push(LOCAL_SERVER);
   serverReady = (async () => {
+    const bases = [];
+    if (API_BASE) bases.push(API_BASE);
+    const published = await discoverPublishedApi();
+    if (published && !bases.includes(published)) bases.push(published);
+    if (!bases.includes(LOCAL_SERVER)) bases.push(LOCAL_SERVER);
     for (const base of bases) {
       try {
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 2000);
+        const t = setTimeout(() => ctrl.abort(), base === LOCAL_SERVER ? 1500 : 4000);
         const r = await fetch(base + '/api/creds-status', { signal: ctrl.signal });
         clearTimeout(t);
         if (r.ok) { await r.json().catch(() => {}); API_BASE = base; LOCAL_MODE = true; applyMode(); return true; }
@@ -688,17 +700,17 @@ async function fetchListing() {
 function listingReadFailed(url) {
   const isUrl = /^https?:\/\//i.test(url);
   const host = isUrl ? (url.match(/^https?:\/\/(?:www\.)?([^\/]+)/) || [])[1] : 'that address';
-  const extHint = !EXT_AVAILABLE
-    ? `<br>&nbsp;• <b>Best fix:</b> install the FlipScope extension (C above) — then paste-a-link and address search work on every site including Zillow.`
-    : '';
-  const localHint = (!LOCAL_MODE && !onLocalhost && !EXT_AVAILABLE)
-    ? `<br>&nbsp;• Or run FlipScope locally (<code>node serve.js</code>) and reload.`
-    : '';
+  if (!LOCAL_MODE && !EXT_AVAILABLE) {
+    return flash('srcMsg', 'err',
+      `Auto-fetch is offline right now (the FlipScope host isn't running). To get photos:` +
+      `<br>&nbsp;• ${isUrl ? `<a href="${url}" target="_blank" rel="noopener">Open the listing ↗</a>` : 'Open the listing'} and click your <b>📸 FlipScope bookmark</b> (B)` +
+      `<br>&nbsp;• Install the extension (C) for one-click grabbing including Zillow` +
+      `<br>&nbsp;• Or save the photos and drop them in the uploader (D)`);
+  }
   flash('srcMsg', 'err',
     `Couldn't pull photos ${isUrl ? 'from ' + host : 'for ' + host} — the site blocked the reader or the page had no gallery.` +
-    extHint +
     `<br>&nbsp;• ${isUrl ? `<a href="${url}" target="_blank" rel="noopener">Open the listing ↗</a> and click your 📸 bookmark` : 'Open the listing yourself and click your 📸 bookmark'} (B)` +
-    `<br>&nbsp;• Or save the photos and drop them in the uploader (D)` + localHint);
+    `<br>&nbsp;• Or save the photos and drop them in the uploader (D)`);
 }
 
 /* ---------- Upload ---------- */
