@@ -347,7 +347,17 @@ const FACT_KEYS = ['address','city','state','zip','beds','baths','sqft','yearBui
 // use your local server when it's running (Chrome allows https → http://localhost).
 const LOCAL_SERVER = 'http://localhost:3456';
 const onLocalhost = /^https?:$/.test(location.protocol) && /^(localhost|127\.0\.0\.1)(:|$)/.test(location.host);
-let API_BASE = onLocalhost ? location.origin : (location.protocol === 'file:' ? LOCAL_SERVER : null);
+// A hosted FlipScope-API endpoint (e.g. a Cloudflare Tunnel to serve.js). Set once
+// via ?api=https://… (remembered), or cleared with ?api=off.
+let SCRAPE_API = null;
+try {
+  const q = new URLSearchParams(location.search).get('api');
+  if (q === 'off') localStorage.removeItem('flipscope_api');
+  else if (q && /^https:\/\//.test(q)) localStorage.setItem('flipscope_api', q.replace(/\/$/, ''));
+  SCRAPE_API = localStorage.getItem('flipscope_api') || null;
+} catch (e) {}
+let API_BASE = onLocalhost ? location.origin
+             : (location.protocol === 'file:' ? LOCAL_SERVER : (SCRAPE_API || null));
 const OPENED_WRONG = (location.protocol === 'file:');
 const api = (path, opts) => fetch((API_BASE || LOCAL_SERVER) + path, opts);
 let LOCAL_MODE = false;
