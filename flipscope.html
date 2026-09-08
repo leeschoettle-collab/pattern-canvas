@@ -176,19 +176,29 @@
 
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div>
-          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">A · Grab bookmarklet &nbsp;<span style="color:#475569;font-weight:400;">— Redfin, Homes.com, Trulia, most MLS sites</span></div>
-          <div style="font-size:0.73rem;color:#94a3b8;line-height:1.7;">
-            Drag this to your bookmarks bar → <a id="bmk" class="btn" style="padding:4px 11px;display:inline-block;" href="#">📸 Grab for FlipScope</a><br>
-            Then open a listing and click it — photos &amp; property facts land here automatically.
-            <a href="#" onclick="showBmkHelp();return false;" style="font-size:0.7rem;">how it works</a>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">A · Paste a listing link</div>
+          <div class="row">
+            <input type="url" id="urlInput" placeholder="https://www.redfin.com/UT/…  or  zillow.com/homedetails/…" style="flex:1; min-width:240px;">
+            <button class="btn" id="fetchBtn" onclick="fetchListing()">Fetch photos</button>
           </div>
-          <div id="bmkHelp" class="hidden" style="font-size:0.72rem;color:#64748b;line-height:1.7;margin-top:8px;border-left:2px solid #2a3550;padding-left:10px;">
-            The button is a bookmarklet — a tiny script that reads the photo URLs and details off the page you're viewing, in your own browser, and opens FlipScope with everything filled in. Nothing is sent to a server. Zillow and Realtor.com block bookmarklets with a strict security policy — for those, use the extension below or just upload photos.
+          <div style="font-size:0.7rem;color:#64748b;margin-top:5px;line-height:1.6;">
+            Works on most Redfin / Realtor / MLS pages. Zillow usually blocks it — for Zillow use the bookmarklet (B) or extension (C), or just upload photos (D).
           </div>
         </div>
 
         <div>
-          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">B · Chrome extension &nbsp;<span style="color:#4ade80;font-weight:400;">— adds Zillow + Realtor.com</span></div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">B · Grab bookmarklet &nbsp;<span style="color:#475569;font-weight:400;">— one click from any listing you're viewing</span></div>
+          <div style="font-size:0.73rem;color:#94a3b8;line-height:1.7;">
+            Drag to your bookmarks bar → <a id="bmk" class="btn" style="padding:4px 11px;display:inline-block;" href="#">📸 Grab for FlipScope</a>
+            <a href="#" onclick="showBmkHelp();return false;" style="font-size:0.7rem;">how it works</a>
+          </div>
+          <div id="bmkHelp" class="hidden" style="font-size:0.72rem;color:#64748b;line-height:1.7;margin-top:8px;border-left:2px solid #2a3550;padding-left:10px;">
+            A tiny script that reads photo URLs + details off the page you're viewing, in your own browser, and opens FlipScope with everything filled in. Nothing is sent to a server. Zillow &amp; Realtor.com block bookmarklets with a strict security policy — use the extension for those.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">C · Chrome extension &nbsp;<span style="color:#4ade80;font-weight:400;">— most reliable, works on Zillow</span></div>
           <div style="font-size:0.73rem;color:#94a3b8;line-height:1.7;">
             <a href="flip-grabber-extension.zip" download>Download the extension</a>, unzip it, then in
             <b>chrome://extensions</b> turn on <b>Developer mode</b> → <b>Load unpacked</b> → pick the unzipped folder.
@@ -197,17 +207,9 @@
         </div>
 
         <div>
-          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">C · Upload photos &nbsp;<span style="color:#475569;font-weight:400;">— walkthrough shots, screenshots, anything</span></div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">D · Upload photos &nbsp;<span style="color:#475569;font-weight:400;">— walkthrough shots, screenshots, anything</span></div>
           <div class="dropzone" id="dropzone" style="margin-top:0;">Drop photos here or click to upload &nbsp;·&nbsp; JPG / PNG / WEBP</div>
           <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
-        </div>
-
-        <div data-local-only class="hidden">
-          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">D · Paste a link &nbsp;<span style="color:#475569;font-weight:400;">— your local FlipScope server</span></div>
-          <div class="row">
-            <input type="url" id="urlInput" placeholder="https://www.redfin.com/UT/..." style="flex:1; min-width:240px;">
-            <button class="btn" id="fetchBtn" onclick="fetchListing()">Fetch listing</button>
-          </div>
         </div>
       </div>
       <div id="srcMsg"></div>
@@ -573,40 +575,138 @@ function renderCompLinks() {
 }
 
 /* ---------- Listing fetch ---------- */
+function applyGrab(res, sourceLabel) {
+  const added = (res.photos || []).filter(p => p && !deal.photos.includes(p));
+  deal.photos.push(...added);
+  const f = res.facts || {}, fsrc = res.factSource || {};
+  let nf = 0;
+  FACT_KEYS.forEach(k => {
+    if (f[k] != null && f[k] !== '' && !$('f_' + k).value) {
+      $('f_' + k).value = f[k];
+      deal.factSource[k] = fsrc[k] || sourceLabel || 'listing';
+      nf++;
+    }
+  });
+  readFacts();
+  curPhoto = 0;
+  hydrateUI();
+  persist();
+  if (res.warning) flash('srcMsg', 'err', '⚠ ' + res.warning);
+  else if (!added.length && !nf) listingReadFailed(res.url || deal.url || '');
+  else flash('srcMsg', 'info', `Pulled ${added.length} photo${added.length !== 1 ? 's' : ''}${nf ? ' + ' + nf + ' fact' + (nf !== 1 ? 's' : '') : ''}. <b>Double-check every field in Property facts.</b>`);
+}
+
 async function fetchListing() {
   const url = $('urlInput').value.trim();
-  if (!url) return flash('srcMsg', 'err', 'Paste a listing URL first.');
-  if (!LOCAL_MODE) return flash('srcMsg', 'err', 'Paste-a-link needs the local FlipScope server running. Use the Grab bookmarklet or extension above, or upload photos.');
+  if (!url || !/^https?:\/\//i.test(url)) return flash('srcMsg', 'err', 'Paste a full listing URL (https://…).');
   deal.url = url;
   $('fetchBtn').disabled = true;
-  flash('srcMsg', 'info', '<span class="spinner"></span> Opening the listing in Chrome and pulling photos… (20–45 sec)');
+  const local = await (serverReady || Promise.resolve(false));
+  flash('srcMsg', 'info', `<span class="spinner"></span> ${local ? 'Opening the listing in Chrome' : 'Reading the listing'}…`);
   try {
-    const r = await api('/api/flip/scrape', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
-    const j = await r.json();
-    if (j.error === 'blocked') { flash('srcMsg', 'err', '⚠ ' + j.message + ' &nbsp;<b>Or use the Grab button (option A above)</b> — it works on Zillow.'); }
-    else if (j.error && j.error !== 'busy') { flash('srcMsg', 'err', 'Scrape failed: ' + j.error + '. You can still upload photos manually.'); }
-    else if (j.error === 'busy') { flash('srcMsg', 'err', j.message); }
-    else {
-      const added = (j.photos || []).filter(p => !deal.photos.includes(p));
-      deal.photos.push(...added);
-      const f = j.facts || {}, fsrc = j.factSource || {};
-      FACT_KEYS.forEach(k => {
-        if (f[k] != null && !$('f_' + k).value) {
-          $('f_' + k).value = f[k];
-          deal.factSource[k] = fsrc[k] || 'listing';
-        }
-      });
-      readFacts();
-      const nf = Object.keys(f).length;
-      if (j.warning) flash('srcMsg', 'err', '⚠ ' + j.warning);
-      else if (!added.length && !nf) flash('srcMsg', 'err', 'Nothing usable found on that page (many sites block scraping). Upload photos manually and type the facts.');
-      else flash('srcMsg', 'info', `Pulled ${added.length} photo${added.length!==1?'s':''}${nf?' + '+nf+' facts':''}. <b>Double-check every field in Property facts</b> — scraped values can be wrong.`);
-      curPhoto = 0;
-      hydrateUI();
-      persist();
+    if (local) {
+      const j = await (await api('/api/flip/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })).json();
+      if (j.error === 'blocked') listingReadFailed(url);
+      else if (j.error === 'busy') flash('srcMsg', 'err', j.message);
+      else if (j.error) flash('srcMsg', 'err', 'Scrape failed: ' + j.error + '. Upload photos instead.');
+      else if (!(j.photos || []).length && !Object.keys(j.facts || {}).length) listingReadFailed(url);
+      else applyGrab(j, 'listing');
+    } else {
+      const res = await fetchViaProxy(url);
+      applyGrab(res, 'listing');
     }
-  } catch(e) { flash('srcMsg', 'err', 'Request failed: ' + e.message); }
+  } catch (e) {
+    listingReadFailed(url);
+  }
   $('fetchBtn').disabled = false;
+}
+
+function listingReadFailed(url) {
+  const host = (url.match(/^https?:\/\/(?:www\.)?([^\/]+)/) || [])[1] || 'the site';
+  flash('srcMsg', 'err',
+    `Couldn't read photos from ${host} directly — it blocks automated readers (Zillow and Realtor.com always do). ` +
+    `Two options that always work:<br>` +
+    `&nbsp;• <a href="${url}" target="_blank" rel="noopener">Open the listing ↗</a> and click your <b>📸 FlipScope bookmark</b> (set it up in B above)<br>` +
+    `&nbsp;• Save the photos from the listing and drop them in the uploader (D)`);
+}
+
+// Hosted mode: fetch the listing HTML through a public CORS proxy, parse it here.
+// (Best-effort — the big sites block proxy IPs too; falls back to the bookmarklet.)
+async function fetchViaProxy(url) {
+  const proxies = [
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u),
+  ];
+  let lastErr;
+  for (const p of proxies) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 9000);
+      const r = await fetch(p(url), { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!r.ok) { lastErr = new Error('proxy ' + r.status); continue; }
+      const html = await r.text();
+      if (!html || html.length < 4000) { lastErr = new Error('blocked'); continue; }
+      const out = extractFromHtml(html, url);
+      if (out.photos.length || Object.keys(out.facts).length) return out;
+      lastErr = new Error('nothing usable on page');
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('all proxies failed');
+}
+
+function extractFromHtml(html, url) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('script,style,noscript,template').forEach(e => e.remove());
+  const pics = [], seen = {};
+  const BAD = /logo|sprite|icon|favicon|avatar|headshot|agent|broker|badge|map|staticmap|street[_-]?view|mapbox|placeholder|walkscore|schools|\/ads?\//i;
+  const add = u => {
+    if (!u || typeof u !== 'string' || u.indexOf('data:') === 0 || BAD.test(u)) return;
+    let stem = u.split('/').pop().split('?')[0].toLowerCase()
+      .replace(/^genmid\./, '').replace(/[-_]p_[a-z]\b/, '').replace(/[-_]cc_ft_\d+/, '')
+      .replace(/[-_](mbpaddedwide|mbpaddedwh|bigphoto|islphoto|\d{2,4}x\d{2,4})/g, '')
+      .replace(/\.(jpe?g|png|webp|avif)$/, '').replace(/_\d{1,2}$/, '');
+    if (stem.length < 4 || seen[stem]) return;
+    seen[stem] = 1; pics.push(u);
+  };
+  [
+    /https?:\/\/photos\.zillowstatic\.com\/fp\/[a-z0-9]+-[a-z_0-9]+\.(?:jpg|jpeg|webp|png)/gi,
+    /https?:\/\/(?:ssl\.)?cdn-redfin\.com\/photo\/\d+\/[a-z0-9.]+\/\d+\/[\w.\-]+\.(?:jpg|jpeg|webp|png)/gi,
+    /https?:\/\/[\w.\-]*rdcpix\.com\/[\w.\/\-]+\.(?:jpg|jpeg|webp|png)/gi,
+  ].forEach(re => (html.match(re) || []).forEach(m => add(m.replace(/\\u002F/g, '/').replace(/\\\//g, '/'))));
+  if (pics.length < 3) {
+    doc.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(m => add(m.content));
+    doc.querySelectorAll('img').forEach(im => { add(im.getAttribute('src') || im.getAttribute('data-src')); const ss = im.getAttribute('srcset'); if (ss) add(ss.split(',').pop().trim().split(' ')[0]); });
+  }
+  const idc = {};
+  pics.forEach(u => { const m = /[\/.](\d{6,})_/.exec(u); if (m) idc[m[1]] = (idc[m[1]] || 0) + 1; });
+  const domId = Object.keys(idc).sort((a, b) => idc[b] - idc[a])[0];
+  let list = (domId && idc[domId] >= 3) ? pics.filter(u => u.indexOf(domId) > -1 || !/[\/.]\d{6,}_/.test(u)) : pics;
+
+  const f = {};
+  const mt = p => { const e = doc.querySelector('meta[property="' + p + '"]'); return e ? e.content : ''; };
+  const ogt = mt('og:title') || (doc.querySelector('title') || {}).textContent || '';
+  const ogd = mt('og:description') || '';
+  const tt = ogt.replace(/\s*[-|]\s*\d+\s*beds?.*/i, '').replace(/\s*\|.*/, '').trim();
+  const am = /^(.+?),\s*([A-Za-z .'\-]+),\s*([A-Z]{2})\s*(\d{5})/.exec(tt)
+          || /([\dA-Za-z][^,]*?),\s*([A-Za-z .'\-]+),\s*([A-Z]{2})\s*(\d{5})/.exec(ogd);
+  if (am) { f.address = am[1].trim(); f.city = am[2].trim(); f.state = am[3]; f.zip = am[4]; }
+  const src = (ogd + ' ' + (doc.body ? doc.body.textContent : '')).replace(/\s+/g, ' ').slice(0, 6000);
+  const bm = /(\d+(?:\.\d+)?)\s*(?:bd\b|beds?\b)\D{0,6}(\d+(?:\.\d+)?)\s*(?:ba\b|baths?\b)\D{0,10}([\d,]{3,})\s*(?:sq)/i.exec(src);
+  if (bm) { f.beds = +bm[1]; f.baths = +bm[2]; f.sqft = +bm[3].replace(/,/g, ''); }
+  const pm = /\$\s?([\d,]{5,})/.exec(ogd); if (pm) f.listPrice = +pm[1].replace(/,/g, '');
+  const ym = /(?:built in|year built|yr\.? built)\D{0,6}((?:18|19|20)\d{2})/i.exec(src); if (ym) f.yearBuilt = +ym[1];
+
+  // reconcile against the URL's state/zip
+  let m, urlState = null, urlZip = null;
+  if (m = /redfin\.com\/([A-Za-z]{2})\//i.exec(url)) urlState = m[1].toUpperCase();
+  else if (m = /homedetails\/[^\/]*?-([A-Za-z]{2})-\d{5}/i.exec(url)) urlState = m[1].toUpperCase();
+  if (m = /[-_/](\d{5})(?:[-_/]|$)/.exec(url.split('?')[0])) urlZip = m[1];
+  if ((urlState && f.state && f.state.toUpperCase() !== urlState) || (urlZip && f.zip && f.zip !== urlZip)) {
+    return { photos: list.slice(0, 40), facts: { state: urlState || f.state, zip: urlZip || f.zip }, url,
+             warning: "That page returned a different property's details (the site likely blocked the reader). Photos may still be right — enter the facts yourself." };
+  }
+  return { photos: list.slice(0, 40), facts: f, url };
 }
 
 /* ---------- Upload ---------- */
@@ -1038,12 +1138,8 @@ function handleImport() {
       const listUrl = decodeURIComponent(u[1]);
       $('urlInput').value = listUrl;
       deal.url = listUrl;
-      const host = (listUrl.match(/^https?:\/\/([^\/]+)/) || [])[1] || 'that page';
-      flash('srcMsg', 'info', '<span class="spinner"></span> Checking…');
-      (serverReady || Promise.resolve(false)).then(ok => {
-        if (ok) { flash('srcMsg', 'info', 'The grabber found no photos on that page — trying a server fetch…'); fetchListing(); }
-        else flash('srcMsg', 'err', `The grabber couldn't read photos from ${host} (the site blocked it or the gallery hadn't loaded). Open the listing, save the photos, and drop them in the uploader below.`);
-      });
+      flash('srcMsg', 'info', 'The grabber found no photos on that page — trying to read it here…');
+      fetchListing();
     } catch (e) {}
     return true;
   }
