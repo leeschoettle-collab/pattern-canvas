@@ -43,7 +43,11 @@ function fetchJson(url, headers = {}) {
 }
 
 function send(res, status, obj) {
-  res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Private-Network': 'true',
+  });
   res.end(JSON.stringify(obj));
 }
 
@@ -647,7 +651,15 @@ async function handleFlipScrape(req, res) {
 
 // ── Main server ───────────────────────────────────────────────────────────────
 http.createServer(async (req, res) => {
-  if (req.method === 'OPTIONS') { res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS' }); return res.end(); }
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+      'Access-Control-Allow-Private-Network': 'true',   // let a hosted https page reach this local server
+    });
+    return res.end();
+  }
   if (req.method === 'POST' && req.url === '/api/save-creds') return handleSaveCreds(req, res);
   if (req.url === '/api/creds-status')                         return handleCredsStatus(res);
   if (req.url.startsWith('/api/propstream-comps'))             return handlePropstreamComps(req.url, res);
