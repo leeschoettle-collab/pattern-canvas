@@ -44,7 +44,7 @@ cleanup() {
   [ -n "$SERVE_PID" ] && kill "$SERVE_PID" 2>/dev/null
   # mark endpoint offline
   printf '{"api":null,"updated":"%s"}\n' "$(date -u +%FT%TZ)" > flipscope-endpoint.json
-  git add flipscope-endpoint.json >/dev/null 2>&1 && git commit -m "flipscope: host offline" >/dev/null 2>&1 && git push >/dev/null 2>&1
+  git rev-parse --git-dir >/dev/null 2>&1 && git commit -m "flipscope: host offline" -- flipscope-endpoint.json >/dev/null 2>&1 && git push >/dev/null 2>&1
   exit 0
 }
 trap cleanup INT TERM
@@ -64,11 +64,13 @@ echo
 
 # Publish the endpoint so the hosted site auto-discovers it (no link needed).
 printf '{"api":"%s","updated":"%s"}\n' "$URL" "$(date -u +%FT%TZ)" > flipscope-endpoint.json
-if git add flipscope-endpoint.json >/dev/null 2>&1 && git commit -m "flipscope: tunnel endpoint" >/dev/null 2>&1; then
-  if git push >/dev/null 2>&1; then
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  git pull --rebase --autostash >/dev/null 2>&1 || true
+  if git commit -m "flipscope: tunnel endpoint" -- flipscope-endpoint.json >/dev/null 2>&1 && git push >/dev/null 2>&1; then
     echo "  ✓ Published. leeschoettle.com/flipscope.html goes live for everyone in ~1 min."
   else
-    echo "  ⚠ Could not 'git push'. Either push manually, or just share the link above."
+    echo "  ⚠ Auto-publish failed. Share this link instead:"
+    echo "     https://leeschoettle.com/flipscope.html?api=$URL"
   fi
 fi
 
