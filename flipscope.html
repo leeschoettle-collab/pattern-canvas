@@ -176,14 +176,13 @@
 
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div>
-          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">A · Paste a listing link</div>
+          <div style="font-size:0.72rem;color:#93c5fd;font-weight:600;margin-bottom:5px;">A · Listing link <span style="color:#475569;font-weight:400;">or full street address</span></div>
           <div class="row">
-            <input type="url" id="urlInput" placeholder="https://www.redfin.com/UT/…  or  zillow.com/homedetails/…" style="flex:1; min-width:240px;">
-            <button class="btn" id="fetchBtn" onclick="fetchListing()">Fetch photos</button>
+            <input type="text" id="urlInput" placeholder="zillow.com/homedetails/…   —or—   123 N Main St, Tooele, UT 84074" style="flex:1; min-width:240px;">
+            <button class="btn" id="fetchBtn" onclick="fetchListing()">Find photos</button>
           </div>
           <div style="font-size:0.7rem;color:#64748b;margin-top:5px;line-height:1.6;">
-            <span data-local-only class="hidden">Pulls Redfin / Realtor / MLS listings automatically. Zillow blocks it — for Zillow use the extension (C).</span>
-            <span data-hosted-only>Auto-fetch needs FlipScope running locally (<code>node serve.js</code>). Otherwise use the bookmarklet (B), extension (C), or upload photos (D).</span>
+            <span id="grabHint"></span>
           </div>
         </div>
 
@@ -352,10 +351,43 @@ let API_BASE = onLocalhost ? location.origin : (location.protocol === 'file:' ? 
 const OPENED_WRONG = (location.protocol === 'file:');
 const api = (path, opts) => fetch((API_BASE || LOCAL_SERVER) + path, opts);
 let LOCAL_MODE = false;
+let EXT_AVAILABLE = false;
+
+// The FlipScope Grabber extension injects a bridge that announces itself.
+window.addEventListener('message', e => {
+  if (e.source === window && e.data && e.data.__flipscope_ext === 'ready' && !EXT_AVAILABLE) {
+    EXT_AVAILABLE = true; updateGrabHint();
+  }
+});
+try { window.postMessage({ __flipscope: 'ping' }, '*'); } catch (e) {}
+
+function updateGrabHint() {
+  const el = document.getElementById('grabHint'); if (!el) return;
+  if (LOCAL_MODE) el.innerHTML = 'Opens the listing in Chrome and pulls the photos + facts. Works by link or by address.';
+  else if (EXT_AVAILABLE) el.innerHTML = '<span style="color:#4ade80;">✓ Grabber extension connected</span> — paste a link or type an address and it fetches in the background (works on Zillow).';
+  else el.innerHTML = 'For auto-fetch, install the extension (C) or run FlipScope locally. Otherwise use the bookmarklet (B) or upload photos (D).';
+}
 
 function applyMode() {
   document.querySelectorAll('[data-local-only]').forEach(el => el.classList.toggle('hidden', !LOCAL_MODE));
   document.querySelectorAll('[data-hosted-only]').forEach(el => el.classList.toggle('hidden', LOCAL_MODE));
+  updateGrabHint();
+}
+
+// Ask the extension to open a URL/address in a background tab and grab it.
+function grabViaExtension(target) {
+  return new Promise((resolve, reject) => {
+    const reqId = 'r' + Date.now() + Math.random();
+    const to = setTimeout(() => { window.removeEventListener('message', h); reject(new Error('the extension timed out')); }, 60000);
+    const h = (e) => {
+      if (e.source !== window || !e.data || e.data.__flipscope !== 'grabResult' || e.data.reqId !== reqId) return;
+      clearTimeout(to); window.removeEventListener('message', h);
+      if (e.data.error) reject(new Error(e.data.error));
+      else resolve(e.data.result || { photos: [], facts: {} });
+    };
+    window.addEventListener('message', h);
+    window.postMessage({ __flipscope: 'grab', target, reqId }, '*');
+  });
 }
 let serverReady;
 function probeServer() {
@@ -610,36 +642,53 @@ function applyGrab(res, sourceLabel) {
 }
 
 async function fetchListing() {
-  const url = $('urlInput').value.trim();
-  if (!url || !/^https?:\/\//i.test(url)) return flash('srcMsg', 'err', 'Paste a full listing URL (https://…).');
-  deal.url = url;
+  const input = $('urlInput').value.trim();
+  if (!input) return flash('srcMsg', 'err', 'Paste a listing link or type a full street address.');
+  const isUrl = /^https?:\/\//i.test(input) || /^[\w.-]+\.(com|net|org|io)\//i.test(input);
+  const target = isUrl ? (/^https?:\/\//i.test(input) ? input : 'https://' + input) : input;
+  if (!isUrl && !/\d/.test(input)) return flash('srcMsg', 'err', 'That doesn’t look like a link or a street address. Include the house number.');
+  if (isUrl) deal.url = target;
   $('fetchBtn').disabled = true;
   const local = await (serverReady || Promise.resolve(false));
-  if (!local) { $('fetchBtn').disabled = false; return listingReadFailed(url); }
-  flash('srcMsg', 'info', `<span class="spinner"></span> Opening the listing in Chrome…`);
+
   try {
-    const j = await (await api('/api/flip/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })).json();
-    if (j.error === 'blocked') listingReadFailed(url);
-    else if (j.error === 'busy') flash('srcMsg', 'err', j.message);
-    else if (j.error) flash('srcMsg', 'err', 'Scrape failed: ' + j.error + '. Upload photos instead.');
-    else if (!(j.photos || []).length && !Object.keys(j.facts || {}).length) listingReadFailed(url);
-    else applyGrab(j, 'listing');
+    if (local) {
+      flash('srcMsg', 'info', `<span class="spinner"></span> Opening ${isUrl ? 'the listing' : 'the property'} in Chrome…`);
+      const payload = isUrl ? { url: target } : { address: input };
+      const j = await (await api('/api/flip/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).json();
+      if (j.error === 'blocked') listingReadFailed(target);
+      else if (j.error === 'busy') flash('srcMsg', 'err', j.message);
+      else if (j.error) flash('srcMsg', 'err', 'Fetch failed: ' + j.error + '. Upload photos instead.');
+      else if (!(j.photos || []).length && !Object.keys(j.facts || {}).length) listingReadFailed(target);
+      else applyGrab(j, 'listing');
+    } else if (EXT_AVAILABLE) {
+      flash('srcMsg', 'info', `<span class="spinner"></span> Grabber extension is fetching ${isUrl ? 'the listing' : '"' + input + '"'} in a background tab… (10–20 sec)`);
+      const res = await grabViaExtension(target);
+      if (res && (res.photos || []).length) applyGrab(res, 'listing');
+      else listingReadFailed(target);
+    } else {
+      listingReadFailed(target);
+    }
   } catch (e) {
-    listingReadFailed(url);
+    flash('srcMsg', 'err', 'Fetch failed: ' + e.message + '. Use the bookmarklet/extension, or upload photos.');
   }
   $('fetchBtn').disabled = false;
 }
 
 function listingReadFailed(url) {
-  const host = (url.match(/^https?:\/\/(?:www\.)?([^\/]+)/) || [])[1] || 'the site';
-  const localHint = (!LOCAL_MODE && !onLocalhost)
-    ? `<br>&nbsp;• If you run FlipScope locally, start it (<code>node serve.js</code>) and reload — paste-a-link uses your own browser then.`
+  const isUrl = /^https?:\/\//i.test(url);
+  const host = isUrl ? (url.match(/^https?:\/\/(?:www\.)?([^\/]+)/) || [])[1] : 'that address';
+  const extHint = !EXT_AVAILABLE
+    ? `<br>&nbsp;• <b>Best fix:</b> install the FlipScope extension (C above) — then paste-a-link and address search work on every site including Zillow.`
+    : '';
+  const localHint = (!LOCAL_MODE && !onLocalhost && !EXT_AVAILABLE)
+    ? `<br>&nbsp;• Or run FlipScope locally (<code>node serve.js</code>) and reload.`
     : '';
   flash('srcMsg', 'err',
-    `Couldn't read photos from ${host} directly — it blocks automated readers (Zillow &amp; Realtor.com always do). ` +
-    `Options that always work:<br>` +
-    `&nbsp;• <a href="${url}" target="_blank" rel="noopener">Open the listing ↗</a> and click your <b>📸 FlipScope bookmark</b> (set up in B)<br>` +
-    `&nbsp;• Save the photos and drop them in the uploader (D)` + localHint);
+    `Couldn't pull photos ${isUrl ? 'from ' + host : 'for ' + host} — the site blocked the reader or the page had no gallery.` +
+    extHint +
+    `<br>&nbsp;• ${isUrl ? `<a href="${url}" target="_blank" rel="noopener">Open the listing ↗</a> and click your 📸 bookmark` : 'Open the listing yourself and click your 📸 bookmark'} (B)` +
+    `<br>&nbsp;• Or save the photos and drop them in the uploader (D)` + localHint);
 }
 
 /* ---------- Upload ---------- */

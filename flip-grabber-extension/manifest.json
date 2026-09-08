@@ -1,12 +1,34 @@
 {
   "manifest_version": 3,
   "name": "FlipScope — Grab Listing",
-  "version": "1.2.0",
-  "description": "Grab photos + property facts from a Zillow/Redfin/Realtor listing and send them to FlipScope.",
+  "version": "1.3.0",
+  "description": "Grab photos + property facts from a Zillow/Redfin/Realtor listing (by link or address) and send them to FlipScope.",
   "permissions": ["scripting", "activeTab", "tabs", "notifications", "storage"],
+  "host_permissions": [
+    "*://*.zillow.com/*",
+    "*://*.redfin.com/*",
+    "*://*.realtor.com/*",
+    "*://*.homes.com/*",
+    "*://*.trulia.com/*",
+    "*://*.compass.com/*",
+    "*://*.homesnap.com/*"
+  ],
+  "optional_host_permissions": ["*://*/*"],
   "background": { "service_worker": "bg.js" },
   "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
   "options_ui": { "page": "options.html", "open_in_tab": true },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://leeschoettle.com/flipscope.html*",
+        "https://leeschoettle.com/flip-analyzer.html*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": ["bridge.js"],
+      "run_at": "document_start"
+    }
+  ],
   "action": {
     "default_title": "Grab this listing for FlipScope",
     "default_icon": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }

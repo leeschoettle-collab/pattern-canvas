@@ -389,8 +389,11 @@ async function openListing(url) {
 let flipScraperRunning = false;
 async function handleFlipScrape(req, res) {
   const body = await readBody(req);
-  const url  = (body.url || '').trim();
-  if (!/^https?:\/\//i.test(url)) return send(res, 400, { error: 'Provide a full listing URL (https://…)' });
+  let url = (body.url || '').trim();
+  const address = (body.address || '').trim();
+  // Address instead of a URL → let Zillow resolve it to the listing page.
+  if (!url && address) url = 'https://www.zillow.com/homes/' + encodeURIComponent(address) + '_rb/';
+  if (!/^https?:\/\//i.test(url)) return send(res, 400, { error: 'Provide a listing URL or a full street address.' });
 
   // Direct image URL — nothing to scrape
   if (/\.(jpe?g|png|webp|avif)(\?|$)/i.test(url)) {
@@ -411,6 +414,8 @@ async function handleFlipScrape(req, res) {
       }
       return send(res, 200, { error: e.message, photos: [], facts: {} });
     }
+    // after any redirect (e.g. address → /homedetails/…), reconcile against the real URL
+    try { const finalUrl = page.url(); if (finalUrl && /homedetails|\/home\/|realestateandhomes-detail/.test(finalUrl)) url = finalUrl; } catch (e) {}
 
     const scraped = await page.evaluate(() => {
       const out = { photos: [], facts: {}, factSource: {} };
