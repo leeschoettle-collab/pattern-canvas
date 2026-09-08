@@ -50,6 +50,38 @@
     .nav-links a:hover, .nav-links a.active { color: var(--white); }
     .nav-cta { background: var(--blue) !important; color: var(--white) !important; padding: 8px 20px; border-radius: 4px; }
 
+    /* Fix & Flip sub-menu */
+    .nav-links li.has-sub { position: relative; }
+    .nav-links li.has-sub > a::after { content: '\25BE'; margin-left: 7px; font-size: 8px; opacity: 0.55; vertical-align: 1px; }
+    .nav-sub {
+      position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(8px);
+      background: rgba(8,13,26,0.98); backdrop-filter: blur(16px);
+      border: 1px solid rgba(45,53,208,0.28); border-radius: 6px;
+      padding: 6px 0; min-width: 236px; list-style: none;
+      display: flex; flex-direction: column;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+    }
+    .nav-sub::before { content: ''; position: absolute; top: -14px; left: 0; right: 0; height: 14px; }
+    .nav-links li.has-sub:hover .nav-sub,
+    .nav-links li.has-sub:focus-within .nav-sub {
+      opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0);
+    }
+    .nav-sub li { margin: 0; }
+    .nav-sub a {
+      display: block; padding: 11px 22px; white-space: nowrap; text-align: left;
+      font-size: 11px; letter-spacing: 0.09em;
+    }
+    .nav-sub a:hover { color: var(--white); background: rgba(45,53,208,0.16); }
+    .nav-sub .sub-divider { height: 1px; background: rgba(45,53,208,0.22); margin: 6px 0; }
+    .nav-sub a.sub-tool { color: var(--gold) !important; }
+    .nav-sub a.sub-tool:hover { background: rgba(200,164,90,0.12); }
+    .nav-sub a.sub-tool small {
+      display: block; text-transform: none; letter-spacing: 0.01em; font-size: 10px;
+      color: rgba(255,255,255,0.5); margin-top: 3px;
+    }
+
     /* Hero */
     #hero {
       height: 80vh; min-height: 560px; display: flex; align-items: center;
@@ -300,7 +332,16 @@
   <ul class="nav-links">
     <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
     <li><a href="listings.html">Listings</a></li>
-    <li><a href="fix-flip.html" class="active">Fix &amp; Flip</a></li>
+    <li class="has-sub">
+      <a href="fix-flip.html" class="active">Fix &amp; Flip</a>
+      <ul class="nav-sub">
+        <li><a href="#process">Our Process</a></li>
+        <li><a href="#metrics">Track Record</a></li>
+        <li><a href="#cta">Partner With Me</a></li>
+        <li><div class="sub-divider"></div></li>
+        <li><a href="flipscope.html" class="sub-tool">Analyze Your Deal &rarr;<small>FlipScope — free rehab &amp; MAO calculator</small></a></li>
+      </ul>
+    </li>
     <li><a href="development.html">Development</a></li>
     <li><a href="index.html#invest">Invest</a></li>
     <li><a href="index.html#contact" class="nav-cta">Get In Touch</a></li>
@@ -314,6 +355,7 @@
     <li><a href="buy-sell.html">Buy &amp; Sell</a></li>
     <li><a href="listings.html">Listings</a></li>
     <li><a href="fix-flip.html">Fix &amp; Flip</a></li>
+    <li><a href="flipscope.html" style="color:var(--gold)">Analyze Your Deal</a></li>
     <li><a href="development.html">Development</a></li>
     <li><a href="index.html#invest">Invest</a></li>
     <li><a href="index.html#contact" class="mob-cta">Get In Touch</a></li>
@@ -472,6 +514,9 @@
     <a href="index.html#contact" class="btn btn-primary">Schedule a Call</a>
     <a href="index.html#contact" class="btn btn-gold">Request Deal Deck</a>
   </div>
+  <p class="reveal" style="text-align:center;margin-top:28px;font-size:13px;color:var(--muted)">
+    Running your own numbers? Try <a href="flipscope.html" style="color:var(--gold);text-decoration:underline">FlipScope</a> — a free rehab checklist &amp; max-offer calculator, no signup.
+  </p>
 </section>
 
 <footer>
